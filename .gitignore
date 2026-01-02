@@ -1,0 +1,38 @@
+# Bytecode Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Arquivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos do sistema operacional
+Thumbs.db
+.DS_Store
+*.log
+
+# Banco de dados
+*.db
+estoque.db
+
+# Arquivos temporários
+*.tmp
+*.bak
+
+# Distribuição
+dist/
+build/
+*.egg-info/
+
+# Configurações locais
+config.local.py
+secrets.json
