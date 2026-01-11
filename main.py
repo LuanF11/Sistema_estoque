@@ -1,7 +1,7 @@
 import sys
 from PySide6.QtWidgets import QApplication
 from database.connection import initialize_database
-from ui.main_window import MainWindow
+from ui.windows.main_window import MainWindow
 
 def main():
     # Inicializa o banco de dados

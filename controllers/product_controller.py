@@ -15,6 +15,7 @@ class ProductController:
             valor_compra,
             valor_venda,
             data_validade,
+            
             tag_ids
     ):
     
@@ -25,6 +26,7 @@ class ProductController:
                 valor_compra,
                 valor_venda,
                 data_validade,
+                
                 tag_ids
             )
             return {"success": True}
@@ -39,6 +41,7 @@ class ProductController:
             valor_compra,
             valor_venda,
             data_validade,
+            
             ativo,
             tag_ids
     ):
@@ -50,6 +53,7 @@ class ProductController:
                 valor_compra,
                 valor_venda,
                 data_validade,
+                
                 ativo,
                 tag_ids
             )
@@ -65,3 +69,4 @@ class ProductController:
     
     def products_near_expiration(self, days):
         return self.service.get_products_near_expiration(days)
+
