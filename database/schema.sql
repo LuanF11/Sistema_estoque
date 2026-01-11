@@ -3,13 +3,16 @@ CREATE TABLE IF NOT EXISTS produtos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
     quantidade INTEGER NOT NULL DEFAULT 0,
-    valor_comprado REAL NOT NULL,
+    valor_compra REAL NOT NULL,
     valor_venda REAL NOT NULL,
     data_validade DATE NULL,
     ativo INTEGER NOT NULL DEFAULT 1,
     data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP
 
 );
+
+-- ALTER TABLE produtos
+-- ADD COLUMN estoque_minimo INTEGER DEFAULT 5;
 
 -- Tabela de Tags
 CREATE TABLE IF NOT EXISTS tags(

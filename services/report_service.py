@@ -1,37 +1,28 @@
-from repositories.stock_repository import StockRepository
-from repositories.product_repository import ProductRepository
-
 class ReportService:
-    '''
-    Classe responsável por gerar relatórios relacionados ao estoque e produtos.
-    '''
 
-    def __init__(self):
-        self.stock_repo = StockRepository()
-        self.product_repo = ProductRepository()
+    def __init__(self, repository):
+        self.repository = repository
 
-    def sales_report(self, data_inicio: str, data_fim: str):
-        movimentacoes = self.stock_repo.list_by_period(data_inicio, data_fim)
+    def get_report(self, start_date, end_date):
+        data = self.repository.get_sales_summary(start_date, end_date)
 
-        total_vendas = 0
-        lucro_total = 0
-        ranking = {}
+        faturamento_total = sum(row[3] for row in data) if data else 0
+        lucro_total = sum(row[4] for row in data) if data else 0
 
-        for mov in movimentacoes:
-            if mov["tipo"] == "SAIDA":
-                produto = self.product_repo.get_by_id(mov["produto_id"])
-                total_vendas += mov["quantidade"] * mov["valor_unitario"]
-
-                lucro = (mov["valor_unitario"] - produto["valor_compra"]) * mov["quantidade"]
-                lucro_total += lucro
-
-                ranking[produto["nome"]] = ranking.get(produto["nome"], 0) + mov["quantidade"]
-
-        produto_mais_vendido = max(ranking, key=ranking.get) if ranking else None
+        top_product = None
+        if data:
+            top_product = {
+                "id": data[0][0],
+                "nome": data[0][1],
+                "quantidade": data[0][2]
+            }
 
         return {
-            "total_vendas": total_vendas,
-            "lucro_total": lucro_total,
-            "produto_mais_vendido": produto_mais_vendido,
-            "ranking": ranking
+            "success": True,
+            "data": data,
+            "top_product": top_product,
+            "totals": {
+                "faturamento": faturamento_total,
+                "lucro": lucro_total
+            }
         }

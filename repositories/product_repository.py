@@ -49,7 +49,7 @@ class ProductRepository(BaseRepository):
     
     def list_all(self, only_active: bool = True):
         if only_active:
-            query = "SELECT * FROM produtos WHERE ativo = 1 = ORDER BY nome"
+            query = "SELECT * FROM produtos WHERE ativo = 1 ORDER BY nome"
             return self.fetchall(query)
         else:
             query = "SELECT * FROM produtos ORDER BY nome"
@@ -68,3 +68,4 @@ class ProductRepository(BaseRepository):
         ORDER BY data_validade
         """
         return self.fetchall(query, (days,))
+    
