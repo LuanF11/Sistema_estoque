@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import Optional
 from repositories.product_repository import ProductRepository
 from repositories.product_tag_repository import ProductTagRepository
@@ -71,3 +71,22 @@ class ProductService:
         if not termo:
             return self.product_repo.list_all()
         return self.product_repo.search_by_name_or_tag(termo)
+    
+    def get_product_alert_status(self, product: dict, warning_days: int = 7):
+        """
+        Retorna: 'Vencido', 'Perto do vencimento' ou None
+        """
+        validade = product.get("data_validade")
+        if not validade:
+            return None
+
+        validade_date = datetime.strptime(validade, "%Y-%m-%d").date()
+        today = date.today()
+
+        if validade_date < today:
+            return "Vencido"
+
+        if (validade_date - today).days <= warning_days:
+            return "Perto do vencimento"
+
+        return None
