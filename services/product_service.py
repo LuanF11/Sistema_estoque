@@ -55,7 +55,7 @@ class ProductService:
         for tag_id in existing_tags:
             self.product_tag_repo.remove_tag_from_product(produto_id, tag_id["id"])
 
-        for tag_id in existing_tags:
+        for tag_id in tag_ids:
             self.product_tag_repo.add_tag_to_product(produto_id, tag_id)
 
     def list_products(self):
@@ -66,3 +66,8 @@ class ProductService:
     
     def get_products_near_expiration(self, days: int):
         return self.product_repo.products_near_expiry(days)
+    
+    def search_products_by_name_or_tag(self, termo: str):
+        if not termo:
+            return self.product_repo.list_all()
+        return self.product_repo.search_by_name_or_tag(termo)

@@ -69,4 +69,10 @@ class ProductController:
     
     def products_near_expiration(self, days):
         return self.service.get_products_near_expiration(days)
+    
+    def get_tags_by_product(self, produto_id):
+        return self.service.product_tag_repo.get_tags_by_product(produto_id)
+    
+    def search_by_name_or_tag(self, termo):
+        return self.service.search_products_by_name_or_tag(termo)
 

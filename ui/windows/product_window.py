@@ -25,7 +25,7 @@ class ProductWindow(QWidget):
         top_bar = QHBoxLayout()
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Buscar produto por nome")
+        self.search_input.setPlaceholderText("Buscar produto por nome ou tag")
 
         btn_search = QPushButton("Buscar")
         btn_search.clicked.connect(self.search_products)
@@ -40,10 +40,15 @@ class ProductWindow(QWidget):
 
         # Tabela
         self.table = QTableWidget()
-        self.table.setColumnCount(6)
+        # self.table.setColumnCount(6)
+        self.table.setColumnCount(7)
+        # self.table.setHorizontalHeaderLabels([
+        #     "ID", "Nome", "Quantidade", "Valor Compra",
+        #     "Valor Venda", "Validade"
+        # ])
         self.table.setHorizontalHeaderLabels([
             "ID", "Nome", "Quantidade", "Valor Compra",
-            "Valor Venda", "Validade"
+            "Valor Venda", "Validade", "Tags"
         ])
 
         layout.addLayout(top_bar)
@@ -79,10 +84,12 @@ class ProductWindow(QWidget):
                 row, 5,
                 QTableWidgetItem(product["data_validade"] or "-")
             )
+            self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
 
     def search_products(self):
         nome = self.search_input.text()
-        products = self.controller.search_by_name(nome)
+        # products = self.controller.search_by_name(nome)
+        products = self.controller.search_by_name_or_tag(nome)
 
         self.table.setRowCount(len(products))
         for row, product in enumerate(products):
@@ -95,3 +102,4 @@ class ProductWindow(QWidget):
                 row, 5,
                 QTableWidgetItem(product["data_validade"] or "-")
             )
+            self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
