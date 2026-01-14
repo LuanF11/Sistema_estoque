@@ -3,6 +3,8 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QTableWidget,
     QTableWidgetItem, QLabel
 )
+from PySide6.QtGui import QColor
+
 from controllers.product_controller import ProductController
 
 from ui.dialogs.product_form import ProductForm
@@ -86,6 +88,20 @@ class ProductWindow(QWidget):
             )
             self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
 
+            # Verificar status de validade e definir cor da linha
+            status = self.controller.service.get_product_alert_status(product, 7)
+            if status == "Vencido":
+                color = QColor(255, 0, 0, 100)  # Vermelho com transparência
+            elif status == "Perto do vencimento":
+                color = QColor(255, 255, 0, 100)  # Amarelo com transparência
+            else:
+                color = QColor(255, 255, 255, 0)  # Branco transparente (padrão)
+
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item:
+                    item.setBackground(color)
+
     def search_products(self):
         nome = self.search_input.text()
         # products = self.controller.search_by_name(nome)
@@ -103,3 +119,17 @@ class ProductWindow(QWidget):
                 QTableWidgetItem(product["data_validade"] or "-")
             )
             self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
+
+            # Verificar status de validade e definir cor da linha
+            status = self.controller.service.get_product_alert_status(product, 7)
+            if status == "Vencido":
+                color = QColor(255, 0, 0, 100)  # Vermelho com transparência
+            elif status == "Perto do vencimento":
+                color = QColor(255, 255, 0, 100)  # Amarelo com transparência
+            else:
+                color = QColor(255, 255, 255, 0)  # Branco transparente (padrão)
+
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                if item:
+                    item.setBackground(color)
