@@ -45,11 +45,25 @@ class ProductForm(QDialog):
         self.valor_venda_input.setMaximum(10**9)
         self.valor_venda_input.setDecimals(2)
 
+        # self.validade_input = QDateEdit()
+        # self.validade_input.setCalendarPopup(True)
+        # self.validade_input.setSpecialValueText("Sem validade")
+        # self.validade_input.setDate(QDate.currentDate())
+        # self.validade_input.setMinimumDate(QDate(1900, 1, 1))
+
+        self.validade_check = QCheckBox("Possui validade")
+        self.validade_check.setChecked(False)
+
         self.validade_input = QDateEdit()
         self.validade_input.setCalendarPopup(True)
-        self.validade_input.setSpecialValueText("Sem validade")
         self.validade_input.setDate(QDate.currentDate())
-        self.validade_input.setMinimumDate(QDate(1900, 1, 1))
+        self.validade_input.setEnabled(False)
+        self.validade_check.stateChanged.connect(
+            lambda state: self.validade_input.setEnabled(state == 2)
+        )
+
+        form.addRow(self.validade_check)
+        form.addRow("Data de validade:", self.validade_input)
 
         self.ativo_check = QCheckBox("Produto ativo")
         self.ativo_check.setChecked(True)
@@ -101,9 +115,24 @@ class ProductForm(QDialog):
         self.valor_venda_input.setValue(self.product["valor_venda"])
         self.ativo_check.setChecked(bool(self.product["ativo"]))
 
+        # if self.product["data_validade"]:
+        #     y, m, d = map(int, self.product["data_validade"].split("-"))
+        #     self.validade_input.setDate(QDate(y, m, d))
         if self.product["data_validade"]:
             y, m, d = map(int, self.product["data_validade"].split("-"))
+            self.validade_check.setChecked(True)
+            self.validade_input.setEnabled(True)
             self.validade_input.setDate(QDate(y, m, d))
+        else:
+            self.validade_check.setChecked(False)
+            self.validade_input.setEnabled(False)
+        
+        product_tags = self.controller.get_tags_by_product(self.product["id"])
+        product_tag_ids = {tag["id"] for tag in product_tags}
+
+        for cb in self.tag_checks:
+            if cb.tag_id in product_tag_ids:
+                cb.setChecked(True)
 
     def _save(self):
         nome = self.nome_input.text().strip()
@@ -112,8 +141,11 @@ class ProductForm(QDialog):
         valor_venda = self.valor_venda_input.value()
         ativo = self.ativo_check.isChecked()
 
+        # data_validade = None
+        # if self.validade_input.date():
+        #     data_validade = self.validade_input.date().toString("yyyy-MM-dd")
         data_validade = None
-        if self.validade_input.date():
+        if self.validade_check.isChecked():
             data_validade = self.validade_input.date().toString("yyyy-MM-dd")
 
         tag_ids = [cb.tag_id for cb in self.tag_checks if cb.isChecked()]
