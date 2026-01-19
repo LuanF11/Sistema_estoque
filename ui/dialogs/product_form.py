@@ -37,6 +37,10 @@ class ProductForm(QDialog):
         self.quantidade_input = QSpinBox()
         self.quantidade_input.setMaximum(10**9)
 
+        self.estoque_minimo_input = QSpinBox()
+        self.estoque_minimo_input.setMaximum(10**9)
+        self.estoque_minimo_input.setValue(5)
+
         self.valor_compra_input = QDoubleSpinBox()
         self.valor_compra_input.setMaximum(10**9)
         self.valor_compra_input.setDecimals(2)
@@ -70,6 +74,7 @@ class ProductForm(QDialog):
 
         form.addRow("Nome:", self.nome_input)
         form.addRow("Quantidade:", self.quantidade_input)
+        form.addRow("Estoque Mínimo:", self.estoque_minimo_input)
         form.addRow("Valor de compra:", self.valor_compra_input)
         form.addRow("Valor de venda:", self.valor_venda_input)
         form.addRow("Data de validade:", self.validade_input)
@@ -111,6 +116,7 @@ class ProductForm(QDialog):
     def _load_product(self):
         self.nome_input.setText(self.product["nome"])
         self.quantidade_input.setValue(self.product["quantidade"])
+        self.estoque_minimo_input.setValue(self.product.get("estoque_minimo", 5))
         self.valor_compra_input.setValue(self.product["valor_compra"])
         self.valor_venda_input.setValue(self.product["valor_venda"])
         self.ativo_check.setChecked(bool(self.product["ativo"]))
@@ -137,6 +143,7 @@ class ProductForm(QDialog):
     def _save(self):
         nome = self.nome_input.text().strip()
         quantidade = self.quantidade_input.value()
+        estoque_minimo = self.estoque_minimo_input.value()
         valor_compra = self.valor_compra_input.value()
         valor_venda = self.valor_venda_input.value()
         ativo = self.ativo_check.isChecked()
@@ -159,8 +166,8 @@ class ProductForm(QDialog):
                 valor_venda,
                 data_validade,
                 ativo,
-                
-                tag_ids
+                tag_ids,
+                estoque_minimo
             )
         else:
             result = self.controller.create_product(
@@ -169,8 +176,8 @@ class ProductForm(QDialog):
                 valor_compra,
                 valor_venda,
                 data_validade,
-                
-                tag_ids
+                tag_ids,
+                estoque_minimo
             )
 
         if result.get("success"):

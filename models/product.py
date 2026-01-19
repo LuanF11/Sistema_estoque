@@ -11,4 +11,5 @@ class Product:
     valor_compra: float
     valor_venda: float
     data_validade: Optional[date]
+    estoque_minimo: int = 5
     ativo: bool = True

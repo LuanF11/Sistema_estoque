@@ -20,7 +20,8 @@ class ProductService:
             valor_compra:float,
             valor_venda:float,
             data_validade: Optional[date],
-            tag_ids: list[int] = []
+            tag_ids: list[int] = [],
+            estoque_minimo: int = 5
 
     ):
         if not nome:
@@ -32,7 +33,10 @@ class ProductService:
         if valor_compra < 0 or valor_venda < 0:
             raise ValueError("Os valores de compra e venda não podem ser negativos.")
         
-        self.product_repo.create(nome, quantidade, valor_compra, valor_venda, data_validade)
+        if estoque_minimo < 0:
+            raise ValueError("O estoque mínimo não pode ser negativo.")
+        
+        self.product_repo.create(nome, quantidade, valor_compra, valor_venda, data_validade, estoque_minimo)
         produto = self.product_repo.search_by_name(nome)[-1]  # Pega o último produto inserido com esse nome
 
         for tag_id in tag_ids:
@@ -47,9 +51,10 @@ class ProductService:
             valor_venda:float,
             data_validade: Optional[date],
             ativo: bool,
-            tag_ids: list[int]
+            tag_ids: list[int],
+            estoque_minimo: int = 5
     ):
-        self.product_repo.update(produto_id, nome, quantidade, valor_compra, valor_venda, data_validade, ativo)
+        self.product_repo.update(produto_id, nome, quantidade, valor_compra, valor_venda, data_validade, ativo, estoque_minimo)
         existing_tags = self.product_tag_repo.get_tags_by_product(produto_id)
 
         for tag_id in existing_tags:
@@ -74,19 +79,27 @@ class ProductService:
     
     def get_product_alert_status(self, product: dict, warning_days: int = 7):
         """
-        Retorna: 'Vencido', 'Perto do vencimento' ou None
+        Retorna uma lista com todos os alertas aplicáveis ao produto.
+        Pode conter: 'Vencido', 'Perto do vencimento', 'Estoque baixo'
         """
+        alertas = []
+        
+        # Verificar estoque mínimo
+        estoque_minimo = product.get("estoque_minimo", 5)
+        quantidade = product.get("quantidade", 0)
+        
+        if quantidade < estoque_minimo:
+            alertas.append("Estoque baixo")
+        
+        # Verificar validade
         validade = product.get("data_validade")
-        if not validade:
-            return None
+        if validade:
+            validade_date = datetime.strptime(validade, "%Y-%m-%d").date()
+            today = date.today()
 
-        validade_date = datetime.strptime(validade, "%Y-%m-%d").date()
-        today = date.today()
+            if validade_date < today:
+                alertas.append("Vencido")
+            elif (validade_date - today).days <= warning_days:
+                alertas.append("Perto do vencimento")
 
-        if validade_date < today:
-            return "Vencido"
-
-        if (validade_date - today).days <= warning_days:
-            return "Perto do vencimento"
-
-        return None
+        return alertas

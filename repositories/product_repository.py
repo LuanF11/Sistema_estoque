@@ -15,12 +15,13 @@ class ProductRepository(BaseRepository):
             valor_compra:float,
             valor_venda:float,
             data_validade: Optional[date],
+            estoque_minimo: int = 5,
     ):
         query = """
-        INSERT INTO produtos (nome, quantidade, valor_compra, valor_venda, data_validade)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO produtos (nome, quantidade, valor_compra, valor_venda, data_validade, estoque_minimo)
+        VALUES (?, ?, ?, ?, ?, ?)
         """
-        self.execute(query, (nome, quantidade, valor_compra, valor_venda, data_validade))
+        self.execute(query, (nome, quantidade, valor_compra, valor_venda, data_validade, estoque_minimo))
     
     def update(
             self,
@@ -31,13 +32,14 @@ class ProductRepository(BaseRepository):
             valor_venda:float,
             data_validade: Optional[date],
             ativo: bool,
+            estoque_minimo: int = 5,
     ):
         query = """
         UPDATE produtos
-        SET nome = ?, quantidade = ?, valor_compra = ?, valor_venda = ?, data_validade = ?, ativo = ?
+        SET nome = ?, quantidade = ?, valor_compra = ?, valor_venda = ?, data_validade = ?, ativo = ?, estoque_minimo = ?
         WHERE id = ?
         """
-        self.execute(query, (nome, quantidade, valor_compra, valor_venda, data_validade, int(ativo), product_id))
+        self.execute(query, (nome, quantidade, valor_compra, valor_venda, data_validade, int(ativo), estoque_minimo, product_id))
     
     def delete(self, product_id: int):
         query = "DELETE FROM produtos WHERE id = ?"
@@ -45,7 +47,10 @@ class ProductRepository(BaseRepository):
     
     def get_by_id(self, product_id: int):
         query = "SELECT * FROM produtos WHERE id = ?"
-        return self.fetchone(query, (product_id,))
+        row = self.fetchone(query, (product_id,))
+        if row:
+            return dict(row)
+        return None
     
     def list_all(self, only_active: bool = True):
         query = """
@@ -57,6 +62,7 @@ class ProductRepository(BaseRepository):
             p.valor_venda,
             p.data_validade,
             p.ativo,
+            p.estoque_minimo,
             GROUP_CONCAT(t.nome, ', ') AS tags
         FROM produtos p
         LEFT JOIN produto_tag pt ON pt.produto_id = p.id
@@ -84,6 +90,7 @@ class ProductRepository(BaseRepository):
                 "valor_venda": row["valor_venda"],
                 "data_validade": row["data_validade"],
                 "ativo": row["ativo"],
+                "estoque_minimo": row["estoque_minimo"],
                 "tags": row["tags"] or ""
             }
             for row in rows
@@ -110,6 +117,7 @@ class ProductRepository(BaseRepository):
             p.valor_venda,
             p.data_validade,
             p.ativo,
+            p.estoque_minimo,
             GROUP_CONCAT(t.nome, ', ') AS tags
         FROM produtos p
         LEFT JOIN produto_tag pt ON pt.produto_id = p.id
@@ -130,6 +138,7 @@ class ProductRepository(BaseRepository):
                 "valor_venda": row["valor_venda"],
                 "data_validade": row["data_validade"],
                 "ativo": row["ativo"],
+                "estoque_minimo": row["estoque_minimo"],
                 "tags": row["tags"] or ""
             }
             for row in rows
@@ -170,6 +179,7 @@ class ProductRepository(BaseRepository):
             p.valor_venda,
             p.data_validade,
             p.ativo,
+            p.estoque_minimo,
             GROUP_CONCAT(t.nome, ', ') AS tags
         FROM produtos p
         LEFT JOIN produto_tag pt ON pt.produto_id = p.id
@@ -198,6 +208,7 @@ class ProductRepository(BaseRepository):
                 "valor_venda": row["valor_venda"],
                 "data_validade": row["data_validade"],
                 "ativo": row["ativo"],
+                "estoque_minimo": row["estoque_minimo"],
                 "tags": row["tags"] or ""
             }
             for row in rows

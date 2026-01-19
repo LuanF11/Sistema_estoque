@@ -8,6 +8,7 @@ from ui.windows.product_window import ProductWindow
 from ui.windows.tag_window import TagWindow
 from ui.windows.stock_window import StockWindow
 from ui.windows.report_window import ReportWindow
+from ui.windows.alerts_window import AlertsWindow
 
 
 class MainWindow(QMainWindow):
@@ -47,6 +48,9 @@ class MainWindow(QMainWindow):
         action_stock = menu_produtos.addAction("Movimentação de Estoque")
         action_stock.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.stock_window))
 
+        action_alerts = menu_estoque.addAction("Dashboard de Alertas")
+        action_alerts.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.alerts_window))
+
         action_report = menu_relatorios.addAction("Vendas e Lucro")
         action_report.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.report_window))
 
@@ -65,6 +69,9 @@ class MainWindow(QMainWindow):
 
         self.stock_window = StockWindow()
         self.stacked_widget.addWidget(self.stock_window)
+
+        self.alerts_window = AlertsWindow()
+        self.stacked_widget.addWidget(self.alerts_window)
 
         self.report_window = ReportWindow()
         self.stacked_widget.addWidget(self.report_window)
