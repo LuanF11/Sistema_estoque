@@ -15,8 +15,8 @@ class ProductController:
             valor_compra,
             valor_venda,
             data_validade,
-            
-            tag_ids
+            tag_ids,
+            estoque_minimo
     ):
     
         try:
@@ -26,8 +26,8 @@ class ProductController:
                 valor_compra,
                 valor_venda,
                 data_validade,
-                
-                tag_ids
+                tag_ids,
+                estoque_minimo
             )
             return {"success": True}
         except ValueError as e:
@@ -41,9 +41,9 @@ class ProductController:
             valor_compra,
             valor_venda,
             data_validade,
-            
             ativo,
-            tag_ids
+            tag_ids,
+            estoque_minimo
     ):
         try:
             self.service.update_product(
@@ -53,9 +53,9 @@ class ProductController:
                 valor_compra,
                 valor_venda,
                 data_validade,
-                
                 ativo,
-                tag_ids
+                tag_ids,
+                estoque_minimo
             )
             return {"success": True}
         except ValueError as e:

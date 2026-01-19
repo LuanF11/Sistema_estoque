@@ -43,13 +43,13 @@ class ProductWindow(QWidget):
         # Tabela
         self.table = QTableWidget()
         # self.table.setColumnCount(6)
-        self.table.setColumnCount(7)
+        self.table.setColumnCount(8)
         # self.table.setHorizontalHeaderLabels([
         #     "ID", "Nome", "Quantidade", "Valor Compra",
         #     "Valor Venda", "Validade"
         # ])
         self.table.setHorizontalHeaderLabels([
-            "ID", "Nome", "Quantidade", "Valor Compra",
+            "ID", "Nome", "Quantidade", "Estoque Mín.", "Valor Compra",
             "Valor Venda", "Validade", "Tags"
         ])
 
@@ -80,19 +80,23 @@ class ProductWindow(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(str(product["id"])))
             self.table.setItem(row, 1, QTableWidgetItem(product["nome"]))
             self.table.setItem(row, 2, QTableWidgetItem(str(product["quantidade"])))
-            self.table.setItem(row, 3, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
-            self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
+            self.table.setItem(row, 3, QTableWidgetItem(str(product.get("estoque_minimo", 5))))
+            self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
+            self.table.setItem(row, 5, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
             self.table.setItem(
-                row, 5,
+                row, 6,
                 QTableWidgetItem(product["data_validade"] or "-")
             )
-            self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
+            self.table.setItem(row, 7, QTableWidgetItem(product.get("tags", "")))
 
-            # Verificar status de validade e definir cor da linha
-            status = self.controller.service.get_product_alert_status(product, 7)
-            if status == "Vencido":
+            # Verificar status de aviso (estoque baixo ou validade)
+            alertas = self.controller.service.get_product_alert_status(product, 7)
+            # Prioridade: Vencido > Perto do vencimento > Estoque baixo
+            if "Vencido" in alertas:
+                color = QColor(64, 64, 64, 100)  # Cinza escuro com transparência
+            elif "Perto do vencimento" in alertas:
                 color = QColor(255, 0, 0, 100)  # Vermelho com transparência
-            elif status == "Perto do vencimento":
+            elif "Estoque baixo" in alertas:
                 color = QColor(255, 255, 0, 100)  # Amarelo com transparência
             else:
                 color = QColor(255, 255, 255, 0)  # Branco transparente (padrão)
@@ -112,24 +116,24 @@ class ProductWindow(QWidget):
             self.table.setItem(row, 0, QTableWidgetItem(str(product["id"])))
             self.table.setItem(row, 1, QTableWidgetItem(product["nome"]))
             self.table.setItem(row, 2, QTableWidgetItem(str(product["quantidade"])))
-            self.table.setItem(row, 3, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
-            self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
+            self.table.setItem(row, 3, QTableWidgetItem(str(product.get("estoque_minimo", 5))))
+            self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
+            self.table.setItem(row, 5, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
             self.table.setItem(
-                row, 5,
+                row, 6,
                 QTableWidgetItem(product["data_validade"] or "-")
             )
-            self.table.setItem(row, 6, QTableWidgetItem(product.get("tags", "")))
+            self.table.setItem(row, 7, QTableWidgetItem(product.get("tags", "")))
 
-            # Verificar status de validade e definir cor da linha
-            status = self.controller.service.get_product_alert_status(product, 7)
-            if status == "Vencido":
+            # Verificar status de aviso (estoque baixo ou validade)
+            alertas = self.controller.service.get_product_alert_status(product, 7)
+            # Prioridade: Vencido > Perto do vencimento > Estoque baixo
+            if "Vencido" in alertas:
+                color = QColor(64, 64, 64, 100)  # Cinza escuro com transparência
+            elif "Perto do vencimento" in alertas:
                 color = QColor(255, 0, 0, 100)  # Vermelho com transparência
-            elif status == "Perto do vencimento":
+            elif "Estoque baixo" in alertas:
                 color = QColor(255, 255, 0, 100)  # Amarelo com transparência
-            else:
-                color = QColor(255, 255, 255, 0)  # Branco transparente (padrão)
-
-            for col in range(self.table.columnCount()):
                 item = self.table.item(row, col)
                 if item:
                     item.setBackground(color)
