@@ -40,6 +40,17 @@ CREATE TABLE IF NOT EXISTS movimentacoes(
 
 );
 
+-- Tabela de Controle de Caixa
+CREATE TABLE IF NOT EXISTS caixa(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    data DATE NOT NULL UNIQUE,
+    valor_abertura REAL NOT NULL,
+    valor_fechamento REAL,
+    status TEXT NOT NULL CHECK(status IN ('ABERTO', 'FECHADO')) DEFAULT 'ABERTO',
+    data_abertura DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_fechamento DATETIME
+);
+
 -- INSERT INTO produtos (
 --     nome,
 --     quantidade,

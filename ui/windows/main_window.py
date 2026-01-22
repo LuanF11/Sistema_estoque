@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+from ui.windows.home_screen import HomeScreen
 from ui.windows.product_window import ProductWindow
 from ui.windows.tag_window import TagWindow
 from ui.windows.stock_window import StockWindow
@@ -54,11 +55,17 @@ class MainWindow(QMainWindow):
         action_report = menu_relatorios.addAction("Vendas e Lucro")
         action_report.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.report_window))
 
+        # Menu para ir para home
+        menu_inicio = QMenu("Início", self)
+        menu_bar.insertMenu(menu_produtos.menuAction(), menu_inicio)
+        action_home = menu_inicio.addAction("Controle de Caixa")
+        action_home.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.home_screen))
+
     def _create_central_area(self):
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 
-        self.home_screen = self._create_home_screen()
+        self.home_screen = HomeScreen()
         self.stacked_widget.addWidget(self.home_screen)
 
         self.product_window = ProductWindow()
@@ -76,16 +83,5 @@ class MainWindow(QMainWindow):
         self.report_window = ReportWindow()
         self.stacked_widget.addWidget(self.report_window)
 
-    def _create_home_screen(self):
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        label = QLabel("Bem-vindo ao Sistema de Controle de Estoque")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("font-size: 20px;")
-
-        layout.addStretch()
-        layout.addWidget(label)
-        layout.addStretch()
-
-        return widget
+        # Mostra home screen por padrão
+        self.stacked_widget.setCurrentWidget(self.home_screen)
