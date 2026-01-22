@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLineEdit, QTableWidget,
-    QTableWidgetItem, QLabel
+    QTableWidgetItem, QLabel, QMessageBox
 )
 from PySide6.QtGui import QColor
 
@@ -33,12 +33,15 @@ class ProductWindow(QWidget):
         btn_search.clicked.connect(self.search_products)
 
         btn_new = QPushButton("Novo Produto")
+        btn_delete = QPushButton("Deletar")
+        btn_delete.clicked.connect(self.delete_product)
 
         top_bar.addWidget(QLabel("Produtos"))
         top_bar.addStretch()
         top_bar.addWidget(self.search_input)
         top_bar.addWidget(btn_search)
         top_bar.addWidget(btn_new)
+        top_bar.addWidget(btn_delete)
 
         # Tabela
         self.table = QTableWidget()
@@ -71,6 +74,28 @@ class ProductWindow(QWidget):
         dialog = ProductForm(self, product=product)
         if dialog.exec():
             self.load_products()
+
+    def delete_product(self):
+        selected_rows = self.table.selectionModel().selectedRows()
+        if not selected_rows:
+            QMessageBox.warning(self, "Aviso", "Selecione um produto para deletar")
+            return
+        
+        row = selected_rows[0].row()
+        produto_id = int(self.table.item(row, 0).text())
+        product_name = self.table.item(row, 1).text()
+        
+        reply = QMessageBox.question(
+            self,
+            "Confirmar Deleção",
+            f"Tem certeza que deseja deletar '{product_name}'?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            self.controller.service.product_repo.delete(produto_id)
+            self.load_products()
+            QMessageBox.information(self, "Sucesso", "Produto deletado com sucesso")
 
     def load_products(self):
         products = self.controller.list_products()
@@ -134,6 +159,10 @@ class ProductWindow(QWidget):
                 color = QColor(255, 0, 0, 100)  # Vermelho com transparência
             elif "Estoque baixo" in alertas:
                 color = QColor(255, 255, 0, 100)  # Amarelo com transparência
+            else:
+                color = QColor(255, 255, 255, 0)  # Branco transparente (padrão)
+
+            for col in range(self.table.columnCount()):
                 item = self.table.item(row, col)
                 if item:
                     item.setBackground(color)
