@@ -10,6 +10,8 @@ from ui.windows.tag_window import TagWindow
 from ui.windows.stock_window import StockWindow
 from ui.windows.report_window import ReportWindow
 from ui.windows.alerts_window import AlertsWindow
+from ui.windows.caixa_window import CaixaWindow
+from ui.windows.caixa_dashboard_window import CaixaDashboardWindow
 
 
 class MainWindow(QMainWindow):
@@ -26,20 +28,35 @@ class MainWindow(QMainWindow):
     def _create_menu(self):
         menu_bar = QMenuBar(self)
 
+        menu_inicio = QMenu("Início", self)
+        menu_caixa = QMenu("Caixa", self)
         menu_produtos = QMenu("Produtos", self)
         menu_estoque = QMenu("Estoque", self)
         menu_relatorios = QMenu("Relatórios", self)
 
+        menu_bar.addMenu(menu_inicio)
+        menu_bar.addMenu(menu_caixa)
         menu_bar.addMenu(menu_produtos)
         menu_bar.addMenu(menu_estoque)
         menu_bar.addMenu(menu_relatorios)
 
         self.setMenuBar(menu_bar)
 
+        self.menu_inicio = menu_inicio
+        self.menu_caixa = menu_caixa
         self.menu_produtos = menu_produtos
         self.menu_estoque = menu_estoque
         self.menu_relatorios = menu_relatorios
 
+        # Menu Início
+        action_home = menu_inicio.addAction("Controle de Caixa")
+        action_home.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.home_screen))
+
+        # Menu Caixa
+        action_gerenciar_caixa = menu_caixa.addAction("Gerenciar Caixas")
+        action_gerenciar_caixa.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.caixa_window))
+
+        # Menu Produtos
         action_produtos = menu_produtos.addAction("Gerenciar Produtos")
         action_produtos.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.product_window))
 
@@ -49,17 +66,16 @@ class MainWindow(QMainWindow):
         action_stock = menu_produtos.addAction("Movimentação de Estoque")
         action_stock.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.stock_window))
 
+        # Menu Estoque
         action_alerts = menu_estoque.addAction("Dashboard de Alertas")
         action_alerts.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.alerts_window))
 
+        # Menu Relatórios
         action_report = menu_relatorios.addAction("Vendas e Lucro")
         action_report.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.report_window))
 
-        # Menu para ir para home
-        menu_inicio = QMenu("Início", self)
-        menu_bar.insertMenu(menu_produtos.menuAction(), menu_inicio)
-        action_home = menu_inicio.addAction("Controle de Caixa")
-        action_home.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.home_screen))
+        action_caixa_dashboard = menu_relatorios.addAction("Resumo de Caixas")
+        action_caixa_dashboard.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.caixa_dashboard_window))
 
     def _create_central_area(self):
         self.stacked_widget = QStackedWidget()
@@ -67,6 +83,12 @@ class MainWindow(QMainWindow):
 
         self.home_screen = HomeScreen()
         self.stacked_widget.addWidget(self.home_screen)
+
+        self.caixa_dashboard_window = CaixaDashboardWindow()
+        self.stacked_widget.addWidget(self.caixa_dashboard_window)
+
+        self.caixa_window = CaixaWindow()
+        self.stacked_widget.addWidget(self.caixa_window)
 
         self.product_window = ProductWindow()
         self.stacked_widget.addWidget(self.product_window)

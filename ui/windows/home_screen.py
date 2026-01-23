@@ -89,6 +89,11 @@ class HomeScreen(QWidget):
         self._build_ui()
         self.atualizar_status_caixa()
 
+    def showEvent(self, event):
+        """Atualiza dados quando a tela fica visível."""
+        super().showEvent(event)
+        self.atualizar_status_caixa()
+
     def _build_ui(self):
         layout = QVBoxLayout(self)
         layout.setSpacing(15)

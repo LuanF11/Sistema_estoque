@@ -51,6 +51,11 @@ class CaixaRepository(BaseRepository):
         result = self.fetchone(query, (caixa_id,))
         return self._map_to_dict(result) if result else None
 
+    def delete(self, caixa_id: int) -> None:
+        """Deleta um caixa."""
+        query = "DELETE FROM caixa WHERE id = ?"
+        self.execute(query, (caixa_id,))
+
     def get_all(self) -> list[dict]:
         """Retorna todos os caixas."""
         query = "SELECT * FROM caixa ORDER BY data DESC"
