@@ -12,6 +12,7 @@ from ui.windows.report_window import ReportWindow
 from ui.windows.alerts_window import AlertsWindow
 from ui.windows.caixa_window import CaixaWindow
 from ui.windows.caixa_dashboard_window import CaixaDashboardWindow
+from ui.windows.analytics_window import AnalyticsWindow
 
 
 class MainWindow(QMainWindow):
@@ -33,12 +34,14 @@ class MainWindow(QMainWindow):
         menu_produtos = QMenu("Produtos", self)
         menu_estoque = QMenu("Estoque", self)
         menu_relatorios = QMenu("Relatórios", self)
+        menu_analises = QMenu("Análises", self)
 
         menu_bar.addMenu(menu_inicio)
         menu_bar.addMenu(menu_caixa)
         menu_bar.addMenu(menu_produtos)
         menu_bar.addMenu(menu_estoque)
         menu_bar.addMenu(menu_relatorios)
+        menu_bar.addMenu(menu_analises)
 
         self.setMenuBar(menu_bar)
 
@@ -47,6 +50,7 @@ class MainWindow(QMainWindow):
         self.menu_produtos = menu_produtos
         self.menu_estoque = menu_estoque
         self.menu_relatorios = menu_relatorios
+        self.menu_analises = menu_analises
 
         # Menu Início
         action_home = menu_inicio.addAction("Controle de Caixa")
@@ -77,6 +81,10 @@ class MainWindow(QMainWindow):
         action_caixa_dashboard = menu_relatorios.addAction("Resumo de Caixas")
         action_caixa_dashboard.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.caixa_dashboard_window))
 
+        # Menu Análises
+        action_analytics = menu_analises.addAction("Dashboard de Análises")
+        action_analytics.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.analytics_window))
+
     def _create_central_area(self):
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
@@ -104,6 +112,9 @@ class MainWindow(QMainWindow):
 
         self.report_window = ReportWindow()
         self.stacked_widget.addWidget(self.report_window)
+
+        self.analytics_window = AnalyticsWindow()
+        self.stacked_widget.addWidget(self.analytics_window)
 
         # Mostra home screen por padrão
         self.stacked_widget.setCurrentWidget(self.home_screen)
