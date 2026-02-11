@@ -11,7 +11,9 @@ class StockController:
         produto_id: int,
         tipo: str,
         quantidade: int,
-        observacao: str = ""
+        observacao: str = "",
+        fiado: bool = False,
+        cliente: str | None = None
     ):
         try:
             if tipo == "ENTRADA":
@@ -25,7 +27,9 @@ class StockController:
                 self.service.saida_produto(
                     produto_id=produto_id,
                     quantidade=quantidade,
-                    observacao=observacao
+                    observacao=observacao,
+                    fiado=fiado,
+                    cliente=cliente
                 )
 
             else:
@@ -41,3 +45,17 @@ class StockController:
                 "success": False,
                 "error": str(e)
             }
+
+    def list_open_fiados(self):
+        try:
+            fiados = self.service.list_open_fiados()
+            return {"success": True, "fiados": fiados}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def pay_fiado(self, fiado_id: int):
+        try:
+            self.service.pay_fiado(fiado_id)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}

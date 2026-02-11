@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QTextEdit, QPushButton,
     QMessageBox, QGroupBox
 )
+from PySide6.QtWidgets import QCheckBox, QLineEdit
 from PySide6.QtCore import Qt
 from controllers.stock_controller import StockController
 from controllers.product_controller import ProductController
@@ -70,6 +71,16 @@ class StockWindow(QWidget):
         form_layout.addWidget(QLabel("Observação:"))
         form_layout.addWidget(self.observation_input)
 
+        # Fiado
+        self.fiado_checkbox = QCheckBox("Fiado")
+        self.fiado_checkbox.stateChanged.connect(self._on_fiado_changed)
+        form_layout.addWidget(self.fiado_checkbox)
+
+        self.cliente_input = QLineEdit()
+        self.cliente_input.setPlaceholderText("Nome do cliente (apenas para fiado)")
+        self.cliente_input.setEnabled(False)
+        form_layout.addWidget(self.cliente_input)
+
         form_group.setLayout(form_layout)
         layout.addWidget(form_group)
 
@@ -85,7 +96,13 @@ class StockWindow(QWidget):
         self.btn_clear.clicked.connect(self._clear_form)
         self.btn_clear.setMaximumWidth(120)
         
+        self.btn_manage_fiados = QPushButton("Gerenciar Fiados")
+        self.btn_manage_fiados.setMinimumHeight(40)
+        self.btn_manage_fiados.clicked.connect(self._open_fiado_manager)
+        self.btn_manage_fiados.setMaximumWidth(160)
+        
         buttons_layout.addWidget(self.btn_register)
+        buttons_layout.addWidget(self.btn_manage_fiados)
         buttons_layout.addWidget(self.btn_clear)
         layout.addLayout(buttons_layout)
 
@@ -142,6 +159,8 @@ class StockWindow(QWidget):
         """Limpa o formulário."""
         self.quantity_input.setValue(1)
         self.observation_input.clear()
+        self.fiado_checkbox.setChecked(False)
+        self.cliente_input.clear()
 
     def register_movement(self):
         # Validações
@@ -153,6 +172,8 @@ class StockWindow(QWidget):
         tipo = self.type_combo.currentText()
         quantidade = self.quantity_input.value()
         observacao = self.observation_input.toPlainText().strip()
+        fiado = bool(self.fiado_checkbox.isChecked())
+        cliente = self.cliente_input.text().strip() if fiado else None
 
         # Validação para saída
         if tipo == "SAIDA" and quantidade > self.current_stock:
@@ -172,7 +193,9 @@ class StockWindow(QWidget):
                 produto_id=produto_id,
                 tipo=tipo,
                 quantidade=quantidade,
-                observacao=observacao
+                observacao=observacao,
+                fiado=fiado,
+                cliente=cliente
             )
 
             if result.get("success"):
@@ -190,3 +213,19 @@ class StockWindow(QWidget):
             # Reabilita botão
             self.btn_register.setEnabled(True)
             self.btn_register.setText("Registrar Movimentação")
+
+    def _on_fiado_changed(self):
+        checked = self.fiado_checkbox.isChecked()
+        if checked and self.type_combo.currentText() != "SAIDA":
+            # Fiado faz sentido apenas para SAIDA
+            QMessageBox.information(self, "Info", "Fiado só é aplicado em SAÍDA de produtos.")
+            self.fiado_checkbox.setChecked(False)
+            return
+
+        self.cliente_input.setEnabled(checked)
+
+    def _open_fiado_manager(self):
+        from ui.dialogs.fiado_manager import FiadoManagerDialog
+
+        dlg = FiadoManagerDialog(self)
+        dlg.exec()

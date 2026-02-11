@@ -207,3 +207,14 @@ class AnalyticsRepository(BaseRepository):
             (SELECT COUNT(DISTINCT strftime('%Y-%m-%d', data_movimentacao)) FROM movimentacoes WHERE tipo = 'SAIDA') as dias_com_vendas
         """
         return self.fetchone(query)
+
+    def get_fiados_summary(self):
+        """Retorna resumo de fiados: abertos e pagos"""
+        query = """
+        SELECT
+            (SELECT COUNT(*) FROM fiados WHERE pago = 0) as count_open,
+            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE pago = 0) as total_open,
+            (SELECT COUNT(*) FROM fiados WHERE pago = 1) as count_paid,
+            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE pago = 1) as total_paid
+        """
+        return self.fetchone(query)

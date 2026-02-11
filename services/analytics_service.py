@@ -172,6 +172,23 @@ class AnalyticsService:
             for row in data
         ]
 
+    def get_fiados_summary(self):
+        data = self.repository.get_fiados_summary()
+        if not data:
+            return {
+                "count_open": 0,
+                "total_open": 0,
+                "count_paid": 0,
+                "total_paid": 0
+            }
+
+        return {
+            "count_open": data[0] or 0,
+            "total_open": data[1] or 0,
+            "count_paid": data[2] or 0,
+            "total_paid": data[3] or 0
+        }
+
     def get_cash_flow(self, start_date, end_date):
         """Fluxo de caixa"""
         data = self.repository.get_cash_flow_summary(start_date, end_date)

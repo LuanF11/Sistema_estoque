@@ -23,7 +23,7 @@ class StockRepository(BaseRepository):
             )
             VALUES (?, ?, ?, ?)
         """
-        self.execute(query, (produto_id, tipo, quantidade, observacao))
+        return self.execute(query, (produto_id, tipo, quantidade, observacao))
 
     def list_by_period(self, data_inicio: str, data_fim: str):
         """

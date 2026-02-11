@@ -1,5 +1,6 @@
 from repositories.product_repository import ProductRepository
 from repositories.stock_repository import StockRepository
+from repositories.fiado_repository import FiadoRepository
 
 
 class StockService:
@@ -10,6 +11,7 @@ class StockService:
     def __init__(self):
         self.product_repo = ProductRepository()
         self.stock_repo = StockRepository()
+        self.fiado_repo = FiadoRepository()
 
     def entrada_produto(
         self,
@@ -49,7 +51,9 @@ class StockService:
         self,
         produto_id: int,
         quantidade: int,
-        observacao: str = ""
+        observacao: str = "",
+        fiado: bool = False,
+        cliente: str | None = None
     ):
         if quantidade <= 0:
             raise ValueError("A quantidade de saída deve ser maior que zero.")
@@ -74,10 +78,55 @@ class StockService:
             bool(produto["ativo"])
         )
 
-        # Registra movimentação (SEM valor_unitario)
-        self.stock_repo.register(
-            produto_id,
-            "SAIDA",
-            quantidade,
-            observacao
-        )
+        # Se for fiado, cria registro em fiados e não registra movimentação ainda
+        if fiado:
+            if not cliente or not cliente.strip():
+                raise ValueError("Nome do cliente é obrigatório para fiado.")
+
+            valor_unitario = produto["valor_venda"]
+            valor_total = round(valor_unitario * quantidade, 2)
+
+            self.fiado_repo.create(
+                produto_id=produto_id,
+                quantidade=quantidade,
+                valor_unitario=valor_unitario,
+                valor_total=valor_total,
+                cliente=cliente.strip()
+            )
+        else:
+            # Registra movimentação (SEM valor_unitario)
+            self.stock_repo.register(
+                produto_id,
+                "SAIDA",
+                quantidade,
+                observacao
+            )
+
+    def list_open_fiados(self):
+        """Retorna lista de fiados em aberto."""
+        return self.fiado_repo.list_open()
+
+    def pay_fiado(self, fiado_id: int):
+        """Marca fiado como pago: cria movimentação SAIDA (para contabilizar nas vendas) e atualiza registro de fiado."""
+        # Busca fiado
+        # (repository.list_open() returns rows but we need the fiado data to create movimentacao)
+        open_fiados = self.fiado_repo.list_open()
+        target = None
+        for f in open_fiados:
+            if f[0] == fiado_id:
+                target = f
+                break
+
+        if not target:
+            raise ValueError("Fiado não encontrado ou já pago")
+
+        # target: (id, produto_id, quantidade, valor_unitario, valor_total, cliente, data_fiado)
+        produto_id = target[1]
+        quantidade = target[2]
+        observacao = f"Pagamento fiado: {target[5]}"
+
+        # Cria movimentação de SAIDA para contabilizar a venda
+        movimentacao_id = self.stock_repo.register(produto_id, "SAIDA", quantidade, observacao)
+
+        # Marca fiado como pago e vincula a movimentação
+        self.fiado_repo.mark_paid(fiado_id, movimentacao_id)
