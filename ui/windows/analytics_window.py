@@ -62,11 +62,13 @@ class AnalyticsWindow(QWidget):
         self.label_itens = self._create_stat_box("Itens em Estoque", "0")
         self.label_vendas = self._create_stat_box("Total de Vendas", "0")
         self.label_dias = self._create_stat_box("Dias com Vendas", "0")
+        self.label_fiados = self._create_stat_box("Fiados Abertos (R$)", "R$ 0,00")
 
         stats_layout.addWidget(self.label_produtos)
         stats_layout.addWidget(self.label_itens)
         stats_layout.addWidget(self.label_vendas)
         stats_layout.addWidget(self.label_dias)
+        stats_layout.addWidget(self.label_fiados)
 
         layout.addLayout(stats_layout)
 
@@ -245,6 +247,10 @@ class AnalyticsWindow(QWidget):
             self.label_valor_venda.label.setText(f"R$ {estoque['valor_venda']:,.2f}")
             margem = estoque['valor_venda'] - estoque['valor_custo']
             self.label_margem_total.label.setText(f"R$ {margem:,.2f}")
+
+            # Fiados
+            fiados = self.service.get_fiados_summary()
+            self.label_fiados.label.setText(f"R$ {fiados['total_open']:,.2f}")
 
             # Gráficos
             self._draw_sales_chart()

@@ -13,7 +13,9 @@ class BaseRepository:
         cursor = conn.cursor()
         cursor.execute(query, params)
         conn.commit()
+        lastrowid = cursor.lastrowid
         cursor.close()
+        return lastrowid
 
     # Método para executar uma consulta SQL que retorna um único registro
     def fetchone(self, query: str, params: tuple = ()):

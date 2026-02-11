@@ -40,6 +40,22 @@ CREATE TABLE IF NOT EXISTS movimentacoes(
 
 );
 
+-- Tabela de Fiados
+CREATE TABLE IF NOT EXISTS fiados(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    produto_id INTEGER NOT NULL,
+    quantidade INTEGER NOT NULL,
+    valor_unitario REAL NOT NULL,
+    valor_total REAL NOT NULL,
+    cliente TEXT NOT NULL,
+    data_fiado DATETIME DEFAULT CURRENT_TIMESTAMP,
+    pago INTEGER NOT NULL DEFAULT 0,
+    data_pagamento DATETIME,
+    movimentacao_id INTEGER,
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
+    FOREIGN KEY (movimentacao_id) REFERENCES movimentacoes(id) ON DELETE SET NULL
+);
+
 -- Tabela de Controle de Caixa
 CREATE TABLE IF NOT EXISTS caixa(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
