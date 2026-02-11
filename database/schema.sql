@@ -56,6 +56,19 @@ CREATE TABLE IF NOT EXISTS fiados(
     FOREIGN KEY (movimentacao_id) REFERENCES movimentacoes(id) ON DELETE SET NULL
 );
 
+-- Tabela de Prejuízos (perdas/descartes)
+CREATE TABLE IF NOT EXISTS prejuizos(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    produto_id INTEGER NOT NULL,
+    quantidade INTEGER NOT NULL,
+    valor_unitario REAL NOT NULL,
+    valor_total REAL NOT NULL,
+    motivo TEXT NOT NULL,
+    observacao TEXT,
+    data_prejuizo DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
+);
+
 -- Tabela de Controle de Caixa
 CREATE TABLE IF NOT EXISTS caixa(
     id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -189,6 +189,19 @@ class AnalyticsService:
             "total_paid": data[3] or 0
         }
 
+    def get_prejuizos_summary(self):
+        data = self.repository.get_prejuizos_summary()
+        if not data:
+            return {"count_total": 0, "total_valor": 0}
+        return {"count_total": data[0] or 0, "total_valor": data[1] or 0}
+
+    def get_prejuizos_by_motivo(self, limit=10):
+        data = self.repository.get_prejuizos_by_motivo(limit)
+        return [
+            {"motivo": row[0], "count": row[1] or 0, "total": row[2] or 0}
+            for row in data
+        ]
+
     def get_cash_flow(self, start_date, end_date):
         """Fluxo de caixa"""
         data = self.repository.get_cash_flow_summary(start_date, end_date)

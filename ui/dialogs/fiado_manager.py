@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
 )
 from controllers.stock_controller import StockController
 from controllers.product_controller import ProductController
+from utils.dates import format_date
 
 
 class FiadoManagerDialog(QDialog):
@@ -61,7 +62,7 @@ class FiadoManagerDialog(QDialog):
             self.table.setItem(row, 2, QTableWidgetItem(str(produto.get('nome', '-'))))
             self.table.setItem(row, 3, QTableWidgetItem(str(f[2])))
             self.table.setItem(row, 4, QTableWidgetItem(f"R$ {f[4]:,.2f}"))
-            self.table.setItem(row, 5, QTableWidgetItem(str(f[6])))
+            self.table.setItem(row, 5, QTableWidgetItem(format_date(str(f[6]))))
 
     def _pay_selected(self):
         row = self.table.currentRow()

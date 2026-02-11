@@ -1,6 +1,7 @@
 from repositories.product_repository import ProductRepository
 from repositories.stock_repository import StockRepository
 from repositories.fiado_repository import FiadoRepository
+from repositories.prejuizo_repository import PrejuizoRepository
 
 
 class StockService:
@@ -12,6 +13,7 @@ class StockService:
         self.product_repo = ProductRepository()
         self.stock_repo = StockRepository()
         self.fiado_repo = FiadoRepository()
+        self.prejuizo_repo = PrejuizoRepository()
 
     def entrada_produto(
         self,
@@ -105,6 +107,45 @@ class StockService:
     def list_open_fiados(self):
         """Retorna lista de fiados em aberto."""
         return self.fiado_repo.list_open()
+
+    def register_prejuizo(self, produto_id: int, quantidade: int, motivo: str, observacao: str = ""):
+        """Registra um prejuízo: reduz estoque e grava registro de prejuizo."""
+        if quantidade <= 0:
+            raise ValueError("Quantidade deve ser maior que zero.")
+
+        produto = self.product_repo.get_by_id(produto_id)
+        if not produto:
+            raise ValueError("Produto não encontrado.")
+
+        if produto["quantidade"] < quantidade:
+            raise ValueError("Quantidade insuficiente em estoque para registrar prejuízo.")
+
+        nova_quantidade = produto["quantidade"] - quantidade
+
+        # Atualiza estoque
+        self.product_repo.update(
+            produto_id,
+            produto["nome"],
+            nova_quantidade,
+            produto["valor_compra"],
+            produto["valor_venda"],
+            produto["data_validade"],
+            bool(produto["ativo"])
+        )
+
+        valor_unitario = produto["valor_venda"]
+        valor_total = round(valor_unitario * quantidade, 2)
+
+        prej_id = self.prejuizo_repo.create(
+            produto_id=produto_id,
+            quantidade=quantidade,
+            valor_unitario=valor_unitario,
+            valor_total=valor_total,
+            motivo=motivo,
+            observacao=observacao
+        )
+
+        return prej_id
 
     def pay_fiado(self, fiado_id: int):
         """Marca fiado como pago: cria movimentação SAIDA (para contabilizar nas vendas) e atualiza registro de fiado."""

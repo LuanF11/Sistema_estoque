@@ -59,3 +59,17 @@ class StockController:
             return {"success": True}
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def register_prejuizo(self, produto_id: int, quantidade: int, motivo: str, observacao: str = ""):
+        try:
+            prej_id = self.service.register_prejuizo(produto_id, quantidade, motivo, observacao)
+            return {"success": True, "prejuizo_id": prej_id}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def list_prejuizos(self, start_date: str = None, end_date: str = None):
+        try:
+            prej = self.service.prejuizo_repo.list_by_period(start_date, end_date)
+            return {"success": True, "prejuizos": prej}
+        except Exception as e:
+            return {"success": False, "error": str(e)}

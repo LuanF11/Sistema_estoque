@@ -7,6 +7,7 @@ from PySide6.QtCore import Qt, QDateTime
 from PySide6.QtGui import QFont, QColor
 
 from controllers.caixa_controller import CaixaController
+from utils.dates import format_date
 
 
 class CaixaDialog(QDialog):
@@ -172,7 +173,7 @@ class HomeScreen(QWidget):
             data_label = QLabel("📅 Data")
             data_label.setFont(QFont("Arial", 10, QFont.Bold))
             data_label.setStyleSheet("color: #0d47a1;")
-            data_value = QLabel(str(self.caixa_atual['data']))
+            data_value = QLabel(format_date(self.caixa_atual['data']))
             data_value.setFont(QFont("Arial", 11))
             data_value.setStyleSheet("color: #1565c0;")
             data_card = QVBoxLayout()
