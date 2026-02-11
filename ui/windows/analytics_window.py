@@ -63,12 +63,14 @@ class AnalyticsWindow(QWidget):
         self.label_vendas = self._create_stat_box("Total de Vendas", "0")
         self.label_dias = self._create_stat_box("Dias com Vendas", "0")
         self.label_fiados = self._create_stat_box("Fiados Abertos (R$)", "R$ 0,00")
+        self.label_prejuizos = self._create_stat_box("Prejuízos (R$)", "R$ 0,00")
 
         stats_layout.addWidget(self.label_produtos)
         stats_layout.addWidget(self.label_itens)
         stats_layout.addWidget(self.label_vendas)
         stats_layout.addWidget(self.label_dias)
         stats_layout.addWidget(self.label_fiados)
+        stats_layout.addWidget(self.label_prejuizos)
 
         layout.addLayout(stats_layout)
 
@@ -96,6 +98,14 @@ class AnalyticsWindow(QWidget):
         self.table_top_produtos.setColumnWidth(0, 200)
         group_layout.addWidget(self.table_top_produtos)
         layout.addWidget(group)
+
+        # Prejuizos por motivo
+        group_p = QGroupBox("Prejuízos por Motivo")
+        group_p_layout = QVBoxLayout(group_p)
+        self.table_prejuizos = QTableWidget(0, 3)
+        self.table_prejuizos.setHorizontalHeaderLabels(["Motivo", "Qtd", "Valor Total (R$)"])
+        group_p_layout.addWidget(self.table_prejuizos)
+        layout.addWidget(group_p)
 
         # Desempenho por categoria
         group2 = QGroupBox("Desempenho por Categoria")
@@ -252,6 +262,10 @@ class AnalyticsWindow(QWidget):
             fiados = self.service.get_fiados_summary()
             self.label_fiados.label.setText(f"R$ {fiados['total_open']:,.2f}")
 
+            # Prejuizos
+            preju = self.service.get_prejuizos_summary()
+            self.label_prejuizos.label.setText(f"R$ {preju['total_valor']:,.2f}")
+
             # Gráficos
             self._draw_sales_chart()
             self._draw_categories_chart()
@@ -259,6 +273,7 @@ class AnalyticsWindow(QWidget):
 
             # Tabelas
             self._load_top_products()
+            self._load_prejuizos()
             self._load_profit_margins()
             self._load_turnover()
             # self._load_inactive_products()
@@ -364,6 +379,19 @@ class AnalyticsWindow(QWidget):
                     self.table_top_produtos.setItem(row, 4, QTableWidgetItem(f"{margem:.1f}%"))
         except Exception as e:
             print(f"Erro ao carregar top produtos: {e}")
+
+    def _load_prejuizos(self):
+        try:
+            prej = self.service.get_prejuizos_by_motivo(10)
+            self.table_prejuizos.setRowCount(0)
+            for item in prej:
+                row = self.table_prejuizos.rowCount()
+                self.table_prejuizos.insertRow(row)
+                self.table_prejuizos.setItem(row, 0, QTableWidgetItem(item['motivo']))
+                self.table_prejuizos.setItem(row, 1, QTableWidgetItem(str(item['count'])))
+                self.table_prejuizos.setItem(row, 2, QTableWidgetItem(f"R$ {item['total']:,.2f}"))
+        except Exception as e:
+            print(f"Erro ao carregar prejuizos: {e}")
 
     def _load_profit_margins(self):
         """Carregar tabela de margens de lucro"""

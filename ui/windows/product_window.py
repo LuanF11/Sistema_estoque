@@ -108,9 +108,10 @@ class ProductWindow(QWidget):
             self.table.setItem(row, 3, QTableWidgetItem(str(product.get("estoque_minimo", 5))))
             self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
             self.table.setItem(row, 5, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
+            from utils.dates import format_date
             self.table.setItem(
                 row, 6,
-                QTableWidgetItem(product["data_validade"] or "-")
+                QTableWidgetItem(format_date(product["data_validade"]))
             )
             self.table.setItem(row, 7, QTableWidgetItem(product.get("tags", "")))
 
@@ -144,9 +145,10 @@ class ProductWindow(QWidget):
             self.table.setItem(row, 3, QTableWidgetItem(str(product.get("estoque_minimo", 5))))
             self.table.setItem(row, 4, QTableWidgetItem(f"{product['valor_compra']:.2f}"))
             self.table.setItem(row, 5, QTableWidgetItem(f"{product['valor_venda']:.2f}"))
+            from utils.dates import format_date
             self.table.setItem(
                 row, 6,
-                QTableWidgetItem(product["data_validade"] or "-")
+                QTableWidgetItem(format_date(product["data_validade"]))
             )
             self.table.setItem(row, 7, QTableWidgetItem(product.get("tags", "")))
 

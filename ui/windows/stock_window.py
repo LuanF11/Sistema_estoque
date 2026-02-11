@@ -101,7 +101,13 @@ class StockWindow(QWidget):
         self.btn_manage_fiados.clicked.connect(self._open_fiado_manager)
         self.btn_manage_fiados.setMaximumWidth(160)
         
+        self.btn_register_prejuizo = QPushButton("Registrar Prejuízo")
+        self.btn_register_prejuizo.setMinimumHeight(40)
+        self.btn_register_prejuizo.clicked.connect(self._open_prejuizo_dialog)
+        self.btn_register_prejuizo.setMaximumWidth(160)
+        
         buttons_layout.addWidget(self.btn_register)
+        buttons_layout.addWidget(self.btn_register_prejuizo)
         buttons_layout.addWidget(self.btn_manage_fiados)
         buttons_layout.addWidget(self.btn_clear)
         layout.addLayout(buttons_layout)
@@ -229,3 +235,11 @@ class StockWindow(QWidget):
 
         dlg = FiadoManagerDialog(self)
         dlg.exec()
+
+    def _open_prejuizo_dialog(self):
+        from ui.dialogs.prejuizo_dialog import PrejuizoDialog
+
+        dlg = PrejuizoDialog(self)
+        if dlg.exec():
+            # atualiza lista de produtos/estoque visível
+            self.load_products()

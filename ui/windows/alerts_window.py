@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QIcon, QFont
 from PySide6.QtCore import Qt, QSize
 from datetime import datetime, date
+from utils.dates import format_date
 
 from controllers.product_controller import ProductController
 
@@ -149,7 +150,7 @@ class AlertsWindow(QWidget):
             if product["data_validade"]:
                 validade_date = datetime.strptime(product["data_validade"], "%Y-%m-%d").date()
                 days_left = (validade_date - date.today()).days
-                return f"Vence em {days_left} dias ({product['data_validade']})"
+                return f"Vence em {days_left} dias ({format_date(product['data_validade'])})"
             return "Próximo do vencimento"
         
         else:  # low_stock

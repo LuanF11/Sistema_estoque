@@ -218,3 +218,20 @@ class AnalyticsRepository(BaseRepository):
             (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE pago = 1) as total_paid
         """
         return self.fetchone(query)
+
+    def get_prejuizos_summary(self):
+        query = """
+        SELECT COUNT(*) as count_total, COALESCE(SUM(valor_total),0) as total_valor
+        FROM prejuizos
+        """
+        return self.fetchone(query)
+
+    def get_prejuizos_by_motivo(self, limit=10):
+        query = """
+        SELECT motivo, COUNT(*) as count_motivo, COALESCE(SUM(valor_total),0) as total_motivo
+        FROM prejuizos
+        GROUP BY motivo
+        ORDER BY total_motivo DESC
+        LIMIT ?
+        """
+        return self.fetchall(query, (limit,))
