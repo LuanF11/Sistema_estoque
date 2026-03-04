@@ -84,3 +84,6 @@ class ReportWindow(QWidget):
             text += f"\nProduto Mais Vendido: {top['nome']} ({top['quantidade']} unidades)"
 
         self.summary_label.setText(text)
+    def refresh(self):
+        """Recarrega o relatório quando a aba fica visível."""
+        self.generate_report()

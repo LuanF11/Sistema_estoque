@@ -158,3 +158,6 @@ class AlertsWindow(QWidget):
             quantidade = product.get("quantidade", 0)
             falta = estoque_minimo - quantidade
             return f"Faltam {falta} unidades para atingir o mínimo"
+    def refresh(self):
+        """Recarrega os alertas quando a aba fica visível."""
+        self.load_alerts()

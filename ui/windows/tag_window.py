@@ -79,3 +79,6 @@ class TagWindow(QWidget):
                 self.load_tags()
             else:
                 QMessageBox.warning(self, "Erro", result.get("error", "Erro ao remover tag"))
+    def refresh(self):
+        """Recarrega as tags quando a aba fica visível."""
+        self.load_tags()

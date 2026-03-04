@@ -3,6 +3,7 @@ from PySide6.QtWidgets import (
     QPushButton, QLineEdit, QTableWidget,
     QTableWidgetItem, QLabel, QMessageBox
 )
+from PySide6.QtWidgets import QDialog, QFormLayout, QComboBox, QDoubleSpinBox, QTextEdit
 from PySide6.QtGui import QColor
 
 from controllers.caixa_controller import CaixaController
@@ -33,6 +34,9 @@ class CaixaWindow(QWidget):
         btn_new = QPushButton("Novo Caixa")
         btn_new.clicked.connect(self.new_caixa)
 
+        btn_mov = QPushButton("Mov. Caixa")
+        btn_mov.clicked.connect(self.open_mov_dialog)
+
         self.btn_delete = QPushButton("Deletar")
         self.btn_delete.setEnabled(False)
         self.btn_delete.setToolTip("Selecione um caixa para deletar")
@@ -43,6 +47,7 @@ class CaixaWindow(QWidget):
         top_bar.addWidget(self.search_input)
         top_bar.addWidget(btn_search)
         top_bar.addWidget(btn_new)
+        top_bar.addWidget(btn_mov)
         top_bar.addWidget(self.btn_delete)
 
         # Tabela
@@ -143,6 +148,26 @@ class CaixaWindow(QWidget):
             self.load_caixas()
             QMessageBox.information(self, "Sucesso", "Caixa deletado com sucesso")
 
+    def open_mov_dialog(self):
+        dialog = RegisterCaixaMovDialog(self)
+        if dialog.exec() == QDialog.Accepted:
+            data = dialog.get_data()
+            caixa_aberto = self.controller.get_caixa_aberto()
+            caixa_id = caixa_aberto["id"] if caixa_aberto else None
+
+            result = self.controller.registrar_movimentacao_caixa(
+                caixa_id,
+                data["tipo"],
+                data["valor"],
+                data["descricao"],
+                data["categoria"]
+            )
+
+            if result.get("success"):
+                QMessageBox.information(self, "Sucesso", result.get("message", "Movimentação registrada"))
+            else:
+                QMessageBox.warning(self, "Erro", result.get("error", "Erro ao registrar movimentação"))
+
     def on_selection_changed(self):
         """Habilita/desabilita o botão de deletar conforme a seleção"""
         has_selection = len(self.table.selectionModel().selectedRows()) > 0
@@ -214,3 +239,50 @@ class CaixaWindow(QWidget):
                 item = self.table.item(row, col)
                 if item:
                     item.setBackground(color)
+    def refresh(self):
+        """Recarrega as caixas quando a aba fica visível."""
+        self.load_caixas()
+
+
+class RegisterCaixaMovDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Registrar Movimentação de Caixa")
+        self.setMinimumWidth(350)
+        self._build_ui()
+
+    def _build_ui(self):
+        layout = QFormLayout(self)
+
+        self.combo_tipo = QComboBox()
+        self.combo_tipo.addItems(["SAIDA", "ENTRADA"])
+
+        self.spin_valor = QDoubleSpinBox()
+        self.spin_valor.setMinimum(0)
+        self.spin_valor.setMaximum(9999999)
+        self.spin_valor.setDecimals(2)
+
+        self.input_categoria = QComboBox()
+        self.input_categoria.addItems(["Despesa","Retirada","Outro"])
+
+        self.input_descricao = QTextEdit()
+        self.input_descricao.setMaximumHeight(80)
+
+        layout.addRow("Tipo:", self.combo_tipo)
+        layout.addRow("Valor (R$):", self.spin_valor)
+        layout.addRow("Categoria:", self.input_categoria)
+        layout.addRow("Descrição:", self.input_descricao)
+
+        from PySide6.QtWidgets import QDialogButtonBox
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+
+    def get_data(self):
+        return {
+            "tipo": self.combo_tipo.currentText(),
+            "valor": float(self.spin_valor.value()),
+            "categoria": self.input_categoria.currentText(),
+            "descricao": self.input_descricao.toPlainText()
+        }

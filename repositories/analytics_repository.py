@@ -235,3 +235,65 @@ class AnalyticsRepository(BaseRepository):
         LIMIT ?
         """
         return self.fetchall(query, (limit,))
+
+    def get_prejuizos_detalhados(self, start_date=None, end_date=None):
+        """Retorna lista detalhada de prejuizos com observações"""
+        query = """
+        SELECT 
+            pr.id,
+            pr.produto_id,
+            p.nome as produto_nome,
+            pr.quantidade,
+            pr.valor_unitario,
+            pr.valor_total,
+            pr.motivo,
+            pr.observacao,
+            pr.data_prejuizo
+        FROM prejuizos pr
+        JOIN produtos p ON p.id = pr.produto_id
+        WHERE 1=1
+        """
+        params = []
+        
+        if start_date and end_date:
+            query += " AND DATE(pr.data_prejuizo) BETWEEN DATE(?) AND DATE(?)"
+            params = [start_date, end_date]
+
+        if params:
+            query += " ORDER BY pr.data_prejuizo DESC"
+            return self.fetchall(query, tuple(params))
+        else:
+            query += " ORDER BY pr.data_prejuizo DESC"
+            return self.fetchall(query)
+
+    def get_fiados_detalhados(self, start_date=None, end_date=None):
+        """Retorna lista detalhada de fiados, podendo filtrar por período de data_fiado"""
+        query = """
+        SELECT
+            f.id,
+            f.produto_id,
+            p.nome as produto_nome,
+            f.quantidade,
+            f.valor_unitario,
+            f.valor_total,
+            f.cliente,
+            f.observacao,
+            f.pago,
+            f.data_fiado,
+            f.data_pagamento
+        FROM fiados f
+        JOIN produtos p ON p.id = f.produto_id
+        WHERE 1=1
+        """
+        params = []
+        if start_date and end_date:
+            query += " AND DATE(f.data_fiado) BETWEEN DATE(?) AND DATE(?)"
+            params = [start_date, end_date]
+
+        query += " ORDER BY f.data_fiado DESC"
+        return self.fetchall(query, tuple(params) if params else ())
+        
+        query += " ORDER BY pr.data_prejuizo DESC"
+        
+        return self.fetchall(query, tuple(params) if params else ())
+

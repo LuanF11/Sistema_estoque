@@ -18,6 +18,10 @@ class CaixaController:
         """Retorna caixa de hoje."""
         return self.service.get_caixa_hoje()
 
+    def registrar_movimentacao_caixa(self, caixa_id: int | None, tipo: str, valor: float, descricao: str = "", categoria: str | None = None) -> dict:
+        """Registra movimentação avulsa de caixa."""
+        return self.service.registrar_movimentacao_caixa(caixa_id, tipo, valor, descricao, categoria)
+
     def get_caixa_aberto(self) -> dict | None:
         """Retorna caixa aberto."""
         return self.service.get_caixa_aberto()
