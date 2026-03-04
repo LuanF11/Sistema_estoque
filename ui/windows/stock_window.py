@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QComboBox, QSpinBox,
+    QLabel, QComboBox, QSpinBox, QDoubleSpinBox,
     QTextEdit, QPushButton,
     QMessageBox, QGroupBox
 )
@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QCheckBox, QLineEdit
 from PySide6.QtCore import Qt
 from controllers.stock_controller import StockController
 from controllers.product_controller import ProductController
+from controllers.caixa_controller import CaixaController
 
 
 class StockWindow(QWidget):
@@ -16,6 +17,7 @@ class StockWindow(QWidget):
         super().__init__()
         self.stock_controller = StockController()
         self.product_controller = ProductController()
+        self.caixa_controller = CaixaController()
         self.current_stock = 0
         self._build_ui()
         self.load_products()
@@ -70,6 +72,19 @@ class StockWindow(QWidget):
         self.observation_input.setMaximumHeight(80)
         form_layout.addWidget(QLabel("Observação:"))
         form_layout.addWidget(self.observation_input)
+
+        # Movimentação avulsa (não altera estoque) - registra direto no caixa
+        self.avulso_checkbox = QCheckBox("Avulso (registrar no caixa)")
+        self.avulso_checkbox.stateChanged.connect(self._on_avulso_changed)
+        form_layout.addWidget(self.avulso_checkbox)
+
+        self.spin_valor_avulso = QDoubleSpinBox()
+        self.spin_valor_avulso.setMinimum(0)
+        self.spin_valor_avulso.setMaximum(9999999)
+        self.spin_valor_avulso.setDecimals(2)
+        self.spin_valor_avulso.setEnabled(False)
+        form_layout.addWidget(QLabel("Valor (R$) - apenas para avulso:"))
+        form_layout.addWidget(self.spin_valor_avulso)
 
         # Fiado
         self.fiado_checkbox = QCheckBox("Fiado")
@@ -181,6 +196,8 @@ class StockWindow(QWidget):
         fiado = bool(self.fiado_checkbox.isChecked())
         cliente = self.cliente_input.text().strip() if fiado else None
 
+        avulso = bool(self.avulso_checkbox.isChecked())
+
         # Validação para saída
         if tipo == "SAIDA" and quantidade > self.current_stock:
             QMessageBox.warning(
@@ -195,14 +212,20 @@ class StockWindow(QWidget):
         self.btn_register.setText("Processando...")
 
         try:
-            result = self.stock_controller.register_movement(
-                produto_id=produto_id,
-                tipo=tipo,
-                quantidade=quantidade,
-                observacao=observacao,
-                fiado=fiado,
-                cliente=cliente
-            )
+            if avulso:
+                # Registrar movimentação avulsa no caixa (valor informado pelo usuário)
+                valor = float(self.spin_valor_avulso.value())
+                # Para avulso, tipo deve ser ENTRADA ou SAIDA; se for SAIDA e foi marcado fiado, ignorar fiado
+                result = self.caixa_controller.registrar_movimentacao_caixa(None, tipo, valor, observacao, None)
+            else:
+                result = self.stock_controller.register_movement(
+                    produto_id=produto_id,
+                    tipo=tipo,
+                    quantidade=quantidade,
+                    observacao=observacao,
+                    fiado=fiado,
+                    cliente=cliente
+                )
 
             if result.get("success"):
                 QMessageBox.information(
@@ -230,6 +253,21 @@ class StockWindow(QWidget):
 
         self.cliente_input.setEnabled(checked)
 
+    def _on_avulso_changed(self):
+        """Handler para checkbox de movimentação avulsa.
+
+        Habilita/desabilita o campo de valor avulso e desabilita o formulário de produto/quantidade
+        para evitar alterações de estoque quando estiver registrando apenas uma movimentação no caixa.
+        """
+        checked = self.avulso_checkbox.isChecked()
+        self.spin_valor_avulso.setEnabled(checked)
+        # Quando for avulso, não alterar estoque: desabilita seleção de produto e quantidade
+        self.product_combo.setEnabled(not checked)
+        self.quantity_input.setEnabled(not checked)
+        # Se ativou avulso, garante quantidade 1 como padrão
+        if checked:
+            self.quantity_input.setValue(1)
+
     def _open_fiado_manager(self):
         from ui.dialogs.fiado_manager import FiadoManagerDialog
 
@@ -243,3 +281,6 @@ class StockWindow(QWidget):
         if dlg.exec():
             # atualiza lista de produtos/estoque visível
             self.load_products()
+    def refresh(self):
+        """Recarrega os dados quando a aba fica visível."""
+        self.load_products()

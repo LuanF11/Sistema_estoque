@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QLabel,
-    QMenuBar, QMenu, QStackedWidget
+    QMenuBar, QMenu, QStackedWidget, QMessageBox
 )
 from PySide6.QtCore import Qt
 
@@ -13,6 +13,7 @@ from ui.windows.alerts_window import AlertsWindow
 from ui.windows.caixa_window import CaixaWindow
 from ui.windows.caixa_dashboard_window import CaixaDashboardWindow
 from ui.windows.analytics_window import AnalyticsWindow
+from ui.dialogs.backup_dialog import BackupDialog
 
 
 class MainWindow(QMainWindow):
@@ -35,6 +36,7 @@ class MainWindow(QMainWindow):
         menu_estoque = QMenu("Estoque", self)
         menu_relatorios = QMenu("Relatórios", self)
         menu_analises = QMenu("Análises", self)
+        menu_ferramentas = QMenu("Ferramentas", self)
 
         menu_bar.addMenu(menu_inicio)
         menu_bar.addMenu(menu_caixa)
@@ -42,6 +44,7 @@ class MainWindow(QMainWindow):
         menu_bar.addMenu(menu_estoque)
         menu_bar.addMenu(menu_relatorios)
         menu_bar.addMenu(menu_analises)
+        menu_bar.addMenu(menu_ferramentas)
 
         self.setMenuBar(menu_bar)
 
@@ -51,6 +54,7 @@ class MainWindow(QMainWindow):
         self.menu_estoque = menu_estoque
         self.menu_relatorios = menu_relatorios
         self.menu_analises = menu_analises
+        self.menu_ferramentas = menu_ferramentas
 
         # Menu Início
         action_home = menu_inicio.addAction("Controle de Caixa")
@@ -85,8 +89,13 @@ class MainWindow(QMainWindow):
         action_analytics = menu_analises.addAction("Dashboard de Análises")
         action_analytics.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.analytics_window))
 
+        # Menu Ferramentas
+        action_backup = menu_ferramentas.addAction("Backup e Restauração")
+        action_backup.triggered.connect(self._open_backup_dialog)
+
     def _create_central_area(self):
         self.stacked_widget = QStackedWidget()
+        self.stacked_widget.currentChanged.connect(self._on_tab_changed)
         self.setCentralWidget(self.stacked_widget)
 
         self.home_screen = HomeScreen()
@@ -118,3 +127,27 @@ class MainWindow(QMainWindow):
 
         # Mostra home screen por padrão
         self.stacked_widget.setCurrentWidget(self.home_screen)
+
+    def _on_tab_changed(self, index):
+        """Atualiza dados quando a aba muda."""
+        widget = self.stacked_widget.widget(index)
+        
+        # Chama refresh nos widgets que possuem este método
+        if hasattr(widget, 'refresh'):
+            try:
+                widget.refresh()
+            except Exception as e:
+                print(f"Erro ao recarregar dados: {e}")
+
+    def _open_backup_dialog(self):
+        """Abre o diálogo de backup e restauração"""
+        dialog = BackupDialog(self)
+        result = dialog.exec()
+        
+        # Se o usuário importou um banco de dados, reinicia a aplicação
+        if result == 1:  # QDialog.Accepted
+            QMessageBox.information(
+                self,
+                "Reiniciar Aplicação",
+                "Por favor, reinicie a aplicação para carregar os dados importados."
+            )

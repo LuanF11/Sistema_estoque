@@ -132,6 +132,10 @@ class ProductWindow(QWidget):
                 if item:
                     item.setBackground(color)
 
+    def refresh(self):
+        """Recarrega os dados quando a aba fica visível."""
+        self.search_input.clear()  # Limpa filtro
+        self.load_products()  # Recarrega lista de produtos
     def search_products(self):
         nome = self.search_input.text()
         # products = self.controller.search_by_name(nome)

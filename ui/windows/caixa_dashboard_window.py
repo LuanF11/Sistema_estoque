@@ -7,6 +7,9 @@ from PySide6.QtCore import QDate
 from PySide6.QtGui import QFont, QColor
 
 from repositories.caixa_repository import CaixaRepository
+from repositories.stock_repository import StockRepository
+from repositories.caixa_movimentacao_repository import CaixaMovimentacaoRepository
+from repositories.product_repository import ProductRepository
 
 
 class CaixaDashboardWindow(QWidget):
@@ -84,7 +87,7 @@ class CaixaDashboardWindow(QWidget):
 
         layout.addLayout(resumo_layout)
 
-        # Tabela com detalhes
+        # Tabela de Histórico de Caixas (resumo por dia)
         layout.addWidget(QLabel("Histórico Detalhado"))
         self.table = QTableWidget()
         self.table.setColumnCount(7)
@@ -93,8 +96,30 @@ class CaixaDashboardWindow(QWidget):
         ])
         layout.addWidget(self.table)
 
-        # Botão de atualização
-        btn_atualizar = QPushButton("Atualizar")
+        # Área de Movimentações por Data
+        controls_layout = QHBoxLayout()
+        controls_layout.addWidget(QLabel("Selecione a data:"))
+        self.date_edit = QDateEdit()
+        self.date_edit.setDate(QDate.currentDate())
+        self.date_edit.setCalendarPopup(True)
+        controls_layout.addWidget(self.date_edit)
+
+        btn_carregar = QPushButton("Carregar Movimentos")
+        btn_carregar.clicked.connect(self.carregar_movimentacoes)
+        controls_layout.addWidget(btn_carregar)
+        controls_layout.addStretch()
+        layout.addLayout(controls_layout)
+
+        layout.addWidget(QLabel("Movimentações do Dia"))
+        self.mov_table = QTableWidget()
+        self.mov_table.setColumnCount(6)
+        self.mov_table.setHorizontalHeaderLabels([
+            "Tipo", "Hora", "Item/Categoria", "Quantidade", "Valor (R$)", "Descrição"
+        ])
+        layout.addWidget(self.mov_table)
+
+        # Botão de atualização do dashboard (caixas)
+        btn_atualizar = QPushButton("Atualizar Resumo")
         btn_atualizar.clicked.connect(self.atualizar_dashboard)
         layout.addWidget(btn_atualizar)
 
@@ -180,3 +205,62 @@ class CaixaDashboardWindow(QWidget):
                 item = self.table.item(row, col)
                 if item:
                     item.setBackground(cor)
+    
+    def carregar_movimentacoes(self):
+        """Carrega movimentações (produtos + avulsos) para a data selecionada e popula a tabela."""
+        target_qdate = self.date_edit.date()
+        target_date = target_qdate.toString("yyyy-MM-dd")
+
+        stock_repo = StockRepository()
+        mov_repo = CaixaMovimentacaoRepository()
+        product_repo = ProductRepository()
+
+        # Movimentações de produtos (SAIDA/ENTRADA)
+        movimentos = stock_repo.list_by_period(target_date, target_date) or []
+
+        rows = []
+        for m in movimentos:
+            # m expected: (id, produto_id, tipo, quantidade, data_movimentacao, observacao)
+            produto_id = m[1]
+            tipo = m[2]
+            quantidade = m[3]
+            data_mov = m[4]
+            observacao = m[5] or ""
+
+            prod = product_repo.get_by_id(produto_id) or {}
+            nome = prod.get("nome", f"Produto #{produto_id}")
+            valor_unit = prod.get("valor_venda", 0) or 0
+            valor_total = quantidade * valor_unit
+
+            hora = data_mov.split(" ")[-1] if isinstance(data_mov, str) else str(data_mov)
+
+            rows.append(("Produto", hora, nome, str(quantidade), f"{valor_total:.2f}", observacao))
+
+        # Movimentações avulsas de caixa
+        avulsos = mov_repo.list_by_date(target_date) or []
+        for a in avulsos:
+            # a expected: (id, caixa_id, tipo, valor, categoria, descricao, data_movimentacao)
+            tipo = a[2]
+            valor = a[3]
+            categoria = a[4] or ""
+            descricao = a[5] or ""
+            data_mov = a[6]
+            hora = data_mov.split(" ")[-1] if isinstance(data_mov, str) else str(data_mov)
+
+            rows.append((f"Avulso ({tipo})", hora, categoria, "-", f"{valor:.2f}", descricao))
+
+        # Ordena por hora (assumindo formato yyyy-MM-dd HH:MM:SS)
+        try:
+            rows.sort(key=lambda r: r[1])
+        except Exception:
+            pass
+
+        # Preenche tabela
+        self.mov_table.setRowCount(len(rows))
+        for i, r in enumerate(rows):
+            for c, val in enumerate(r):
+                self.mov_table.setItem(i, c, QTableWidgetItem(val))
+
+    def refresh(self):
+        """Recarrega o dashboard quando a aba fica visível."""
+        self.atualizar_dashboard()

@@ -93,7 +93,8 @@ class StockService:
                 quantidade=quantidade,
                 valor_unitario=valor_unitario,
                 valor_total=valor_total,
-                cliente=cliente.strip()
+                cliente=cliente.strip(),
+                observacao=observacao
             )
         else:
             # Registra movimentação (SEM valor_unitario)
@@ -147,10 +148,43 @@ class StockService:
 
         return prej_id
 
+    def remove_prejuizo(self, prejuizo_id: int):
+        """Remove um prejuízo previamente registrado e repõe o estoque do produto.
+
+        A exclusão apenas é permitida se o prejuízo existir. O estoque é ajustado
+        adicionando-se novamente a quantidade perdida.
+        """
+        # Busca registro existente
+        prej = self.prejuizo_repo.get_by_id(prejuizo_id)
+        if not prej:
+            raise ValueError("Prejuízo não encontrado.")
+
+        produto_id = prej[1]  # tuple: (id, produto_id, quantidade, ...)
+        quantidade = prej[2]
+
+        # Atualiza estoque adicionando a quantidade do prejuízo
+        produto = self.product_repo.get_by_id(produto_id)
+        if not produto:
+            raise ValueError("Produto associado ao prejuízo não encontrado.")
+
+        nova_quantidade = produto["quantidade"] + quantidade
+        self.product_repo.update(
+            produto_id,
+            produto["nome"],
+            nova_quantidade,
+            produto["valor_compra"],
+            produto["valor_venda"],
+            produto["data_validade"],
+            bool(produto["ativo"])
+        )
+
+        # por fim, exclui o registro de prejuízo
+        self.prejuizo_repo.delete(prejuizo_id)
+
     def pay_fiado(self, fiado_id: int):
         """Marca fiado como pago: cria movimentação SAIDA (para contabilizar nas vendas) e atualiza registro de fiado."""
         # Busca fiado
-        # (repository.list_open() returns rows but we need the fiado data to create movimentacao)
+        # (repository.list_open() returns rows mas precisamos dos dados para criar movimentacao)
         open_fiados = self.fiado_repo.list_open()
         target = None
         for f in open_fiados:
@@ -161,7 +195,7 @@ class StockService:
         if not target:
             raise ValueError("Fiado não encontrado ou já pago")
 
-        # target: (id, produto_id, quantidade, valor_unitario, valor_total, cliente, data_fiado)
+        # target: (id, produto_id, quantidade, valor_unitario, valor_total, cliente, observacao, data_fiado)
         produto_id = target[1]
         quantidade = target[2]
         observacao = f"Pagamento fiado: {target[5]}"
@@ -171,3 +205,35 @@ class StockService:
 
         # Marca fiado como pago e vincula a movimentação
         self.fiado_repo.mark_paid(fiado_id, movimentacao_id)
+
+    def remove_fiado(self, fiado_id: int):
+        """Exclui um fiado em aberto e repõe o estoque."""
+        fiado = self.fiado_repo.get_by_id(fiado_id)
+        if not fiado:
+            raise ValueError("Fiado não encontrado.")
+
+        pago = fiado[8]  # coluna 'pago'
+        if pago == 1:
+            raise ValueError("Não é possível excluir um fiado já pago.")
+
+        produto_id = fiado[1]
+        quantidade = fiado[2]
+
+        # Ajusta estoque devolvendo quantidade vendida
+        produto = self.product_repo.get_by_id(produto_id)
+        if not produto:
+            raise ValueError("Produto associado ao fiado não encontrado.")
+
+        nova_quantidade = produto["quantidade"] + quantidade
+        self.product_repo.update(
+            produto_id,
+            produto["nome"],
+            nova_quantidade,
+            produto["valor_compra"],
+            produto["valor_venda"],
+            produto["data_validade"],
+            bool(produto["ativo"])
+        )
+
+        # Exclui o registro do fiado
+        self.fiado_repo.delete(fiado_id)

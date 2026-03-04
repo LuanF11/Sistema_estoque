@@ -215,6 +215,28 @@ class HomeScreen(QWidget):
             info_grid.addWidget(data_widget, 0, 0)
             info_grid.addWidget(abertura_widget, 0, 1)
             info_grid.addWidget(hora_widget, 0, 2)
+
+            # Card: Saldo Esperado (considerando vendas e movimentos avulsos)
+            saldo_esperado_label = QLabel("💡 Saldo Esperado")
+            saldo_esperado_label.setFont(QFont("Arial", 10, QFont.Bold))
+            saldo_esperado_label.setStyleSheet("color: #0b5345;")
+            saldo_val = self.caixa_atual.get("saldo_esperado") if self.caixa_atual else None
+            if saldo_val is None:
+                saldo_text = "-"
+            else:
+                saldo_text = f"R$ {saldo_val:.2f}"
+            saldo_esperado_value = QLabel(saldo_text)
+            saldo_esperado_value.setFont(QFont("Arial", 11, QFont.Bold))
+            saldo_esperado_value.setStyleSheet("color: #0b5345;")
+            saldo_card = QVBoxLayout()
+            saldo_card.addWidget(saldo_esperado_label)
+            saldo_card.addWidget(saldo_esperado_value)
+            saldo_widget = QGroupBox()
+            saldo_widget.setLayout(saldo_card)
+            saldo_widget.setStyleSheet("QGroupBox { background-color: #e8f8f5; padding: 10px; border-radius: 5px; border: 1px solid #b2ebe0; }")
+
+            # Adiciona saldo esperado abaixo na primeira linha (coluna 0-2 juntando espaço)
+            info_grid.addWidget(saldo_widget, 1, 0, 1, 3)
             
             # Se fechado, adiciona informações de fechamento
             if self.caixa_atual["valor_fechamento"]:

@@ -26,6 +26,20 @@ class PrejuizoRepository(BaseRepository):
         query += " ORDER BY p.data_prejuizo DESC"
         return self.fetchall(query, tuple(params))
 
+    def get_by_id(self, prejuizo_id: int):
+        query = """
+        SELECT id, produto_id, quantidade, valor_unitario, valor_total, motivo, observacao, data_prejuizo
+        FROM prejuizos
+        WHERE id = ?
+        """
+        return self.fetchone(query, (prejuizo_id,))
+
+    def delete(self, prejuizo_id: int):
+        query = """
+        DELETE FROM prejuizos WHERE id = ?
+        """
+        return self.execute(query, (prejuizo_id,))
+
     def summary_by_motivo(self, limit: int = 10):
         query = """
         SELECT motivo, COUNT(*) as count, COALESCE(SUM(valor_total),0) as total

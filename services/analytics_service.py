@@ -202,6 +202,44 @@ class AnalyticsService:
             for row in data
         ]
 
+    def get_prejuizos_detalhados(self, start_date=None, end_date=None):
+        """Retorna lista detalhada de prejuduizos com observações"""
+        data = self.repository.get_prejuizos_detalhados(start_date, end_date)
+        return [
+            {
+                "id": row[0],
+                "produto_id": row[1],
+                "produto_nome": row[2],
+                "quantidade": row[3],
+                "valor_unitario": row[4],
+                "valor_total": row[5],
+                "motivo": row[6],
+                "observacao": row[7],
+                "data_prejuizo": row[8]
+            }
+            for row in data
+        ]
+
+    def get_fiados_detalhados(self, start_date=None, end_date=None):
+        """Retorna lista detalhada de fiados (abertos e pagos)"""
+        data = self.repository.get_fiados_detalhados(start_date, end_date)
+        return [
+            {
+                "id": row[0],
+                "produto_id": row[1],
+                "produto_nome": row[2],
+                "quantidade": row[3],
+                "valor_unitario": row[4],
+                "valor_total": row[5],
+                "cliente": row[6],
+                "observacao": row[7],
+                "pago": bool(row[8]),
+                "data_fiado": row[9],
+                "data_pagamento": row[10]
+            }
+            for row in data
+        ]
+
     def get_cash_flow(self, start_date, end_date):
         """Fluxo de caixa"""
         data = self.repository.get_cash_flow_summary(start_date, end_date)

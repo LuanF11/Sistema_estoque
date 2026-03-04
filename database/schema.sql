@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS fiados(
     valor_unitario REAL NOT NULL,
     valor_total REAL NOT NULL,
     cliente TEXT NOT NULL,
+    observacao TEXT,
     data_fiado DATETIME DEFAULT CURRENT_TIMESTAMP,
     pago INTEGER NOT NULL DEFAULT 0,
     data_pagamento DATETIME,
@@ -78,6 +79,18 @@ CREATE TABLE IF NOT EXISTS caixa(
     status TEXT NOT NULL CHECK(status IN ('ABERTO', 'FECHADO')) DEFAULT 'ABERTO',
     data_abertura DATETIME DEFAULT CURRENT_TIMESTAMP,
     data_fechamento DATETIME
+);
+
+-- Tabela para movimentos de caixa não relacionados a produtos (entradas/saídas avulsas)
+CREATE TABLE IF NOT EXISTS caixa_movimentacoes(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    caixa_id INTEGER,
+    tipo TEXT NOT NULL CHECK(tipo IN ('ENTRADA', 'SAIDA')),
+    valor REAL NOT NULL,
+    categoria TEXT,
+    descricao TEXT,
+    data_movimentacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (caixa_id) REFERENCES caixa(id) ON DELETE SET NULL
 );
 
 -- INSERT INTO produtos (

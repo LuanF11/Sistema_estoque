@@ -34,7 +34,7 @@ class PrejuizoDialog(QDialog):
 
         layout.addWidget(QLabel("Motivo:"))
         self.motivo_combo = QComboBox()
-        self.motivo_combo.addItems(["Quebrado", "Vazamento", "Defeito", "Outro"])
+        self.motivo_combo.addItems(["Descrever"])
         layout.addWidget(self.motivo_combo)
 
         layout.addWidget(QLabel("Observação (opcional):"))

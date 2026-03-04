@@ -60,6 +60,13 @@ class StockController:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def delete_fiado(self, fiado_id: int):
+        try:
+            self.service.remove_fiado(fiado_id)
+            return {"success": True}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def register_prejuizo(self, produto_id: int, quantidade: int, motivo: str, observacao: str = ""):
         try:
             prej_id = self.service.register_prejuizo(produto_id, quantidade, motivo, observacao)
@@ -71,5 +78,12 @@ class StockController:
         try:
             prej = self.service.prejuizo_repo.list_by_period(start_date, end_date)
             return {"success": True, "prejuizos": prej}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def delete_prejuizo(self, prejuizo_id: int):
+        try:
+            self.service.remove_prejuizo(prejuizo_id)
+            return {"success": True}
         except Exception as e:
             return {"success": False, "error": str(e)}
