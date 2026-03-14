@@ -58,15 +58,15 @@ class FiadoManagerDialog(QDialog):
         for f in fiados:
             row = self.table.rowCount()
             self.table.insertRow(row)
-            produto = products.get(f[1], {"nome": "-"})
+            produto = products.get(f.get('produto_id'), {"nome": "-"})
 
-            self.table.setItem(row, 0, QTableWidgetItem(str(f[0])))
-            self.table.setItem(row, 1, QTableWidgetItem(str(f[5])))
+            self.table.setItem(row, 0, QTableWidgetItem(str(f['id'])))
+            self.table.setItem(row, 1, QTableWidgetItem(str(f['cliente_nome'])))
             self.table.setItem(row, 2, QTableWidgetItem(str(produto.get('nome', '-'))))
-            self.table.setItem(row, 3, QTableWidgetItem(str(f[2])))
-            self.table.setItem(row, 4, QTableWidgetItem(f"R$ {f[4]:,.2f}"))
-            self.table.setItem(row, 5, QTableWidgetItem(str(f[6] if f[6] else "-")))
-            self.table.setItem(row, 6, QTableWidgetItem(format_date(str(f[7]))))
+            self.table.setItem(row, 3, QTableWidgetItem(str(f['quantidade'])))
+            self.table.setItem(row, 4, QTableWidgetItem(f"R$ {f['valor_total']:.2f}"))
+            self.table.setItem(row, 5, QTableWidgetItem(str(f.get('observacao') or "-")))
+            self.table.setItem(row, 6, QTableWidgetItem(format_date(str(f['data_fiado']))))
 
     def _pay_selected(self):
         row = self.table.currentRow()

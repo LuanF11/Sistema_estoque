@@ -45,6 +45,48 @@ def initialize_database():
             # Coluna já existe, ignorar
             pass
 
+        # Migração: adicionar coluna produto_nome para armazenar nome quando produto não estiver cadastrado
+        try:
+            cursor.execute("ALTER TABLE fiados ADD COLUMN produto_nome TEXT")
+        except sqlite3.OperationalError:
+            pass
+
+        # Migração: permitir null em produto_id caso tabela antiga tenha NOT NULL
+        # SQLite não remove NOT NULL via ALTER, portanto recriamos a tabela se necessário
+        info = cursor.execute("PRAGMA table_info(fiados)").fetchall()
+        for col in info:
+            # col format: (cid, name, type, notnull, dflt_value, pk)
+            if col[1] == 'produto_id' and col[3] == 1:
+                # precisamos recriar tabela com produto_id aceitando NULL
+                cursor.execute("ALTER TABLE fiados RENAME TO fiados_old")
+                cursor.executescript("""
+                CREATE TABLE fiados (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    cliente_id INTEGER NOT NULL,
+                    produto_id INTEGER,
+                    produto_nome TEXT,
+                    quantidade INTEGER NOT NULL,
+                    valor_unitario REAL NOT NULL,
+                    valor_total REAL NOT NULL,
+                    valor_pendente REAL NOT NULL,
+                    observacao TEXT,
+                    data_fiado TEXT NOT NULL DEFAULT (DATE('now')),
+                    data_vencimento TEXT,
+                    FOREIGN KEY (cliente_id) REFERENCES clientes (id),
+                    FOREIGN KEY (produto_id) REFERENCES produtos (id)
+                );
+                """
+                )
+                cursor.execute(
+                    "INSERT INTO fiados (id, cliente_id, produto_id, produto_nome, quantidade, valor_unitario,\
+                     valor_total, valor_pendente, observacao, data_fiado, data_vencimento)\
+                     SELECT id, cliente_id, produto_id, produto_nome, quantidade, valor_unitario,\
+                     valor_total, valor_pendente, observacao, data_fiado, data_vencimento\
+                     FROM fiados_old"
+                )
+                cursor.execute("DROP TABLE fiados_old")
+                break
+
         # Confirma as mudanças e fecha a conexão
         conn.commit()
         conn.close()

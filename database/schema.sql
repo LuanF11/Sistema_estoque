@@ -40,21 +40,42 @@ CREATE TABLE IF NOT EXISTS movimentacoes(
 
 );
 
+-- Tabela de Clientes
+CREATE TABLE IF NOT EXISTS clientes(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL UNIQUE,
+    telefone TEXT,
+    email TEXT,
+    endereco TEXT,
+    data_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ativo INTEGER NOT NULL DEFAULT 1
+);
+
 -- Tabela de Fiados
 CREATE TABLE IF NOT EXISTS fiados(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    produto_id INTEGER NOT NULL,
+    cliente_id INTEGER NOT NULL,
+    produto_id INTEGER NULL,
+    produto_nome TEXT,
     quantidade INTEGER NOT NULL,
     valor_unitario REAL NOT NULL,
     valor_total REAL NOT NULL,
-    cliente TEXT NOT NULL,
+    valor_pendente REAL NOT NULL,
     observacao TEXT,
     data_fiado DATETIME DEFAULT CURRENT_TIMESTAMP,
-    pago INTEGER NOT NULL DEFAULT 0,
-    data_pagamento DATETIME,
-    movimentacao_id INTEGER,
-    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
-    FOREIGN KEY (movimentacao_id) REFERENCES movimentacoes(id) ON DELETE SET NULL
+    data_vencimento DATE,
+    FOREIGN KEY (cliente_id) REFERENCES clientes(id) ON DELETE CASCADE,
+    FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE
+);
+
+-- Tabela de Pagamentos de Fiados (para pagamentos parciais)
+CREATE TABLE IF NOT EXISTS fiado_pagamentos(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    fiado_id INTEGER NOT NULL,
+    valor_pago REAL NOT NULL,
+    data_pagamento DATETIME DEFAULT CURRENT_TIMESTAMP,
+    observacao TEXT,
+    FOREIGN KEY (fiado_id) REFERENCES fiados(id) ON DELETE CASCADE
 );
 
 -- Tabela de Prejuízos (perdas/descartes)

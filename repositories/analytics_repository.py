@@ -212,10 +212,10 @@ class AnalyticsRepository(BaseRepository):
         """Retorna resumo de fiados: abertos e pagos"""
         query = """
         SELECT
-            (SELECT COUNT(*) FROM fiados WHERE pago = 0) as count_open,
-            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE pago = 0) as total_open,
-            (SELECT COUNT(*) FROM fiados WHERE pago = 1) as count_paid,
-            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE pago = 1) as total_paid
+            (SELECT COUNT(*) FROM fiados WHERE valor_pendente > 0) as count_open,
+            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE valor_pendente > 0) as total_open,
+            (SELECT COUNT(*) FROM fiados WHERE valor_pendente = 0) as count_paid,
+            (SELECT COALESCE(SUM(valor_total),0) FROM fiados WHERE valor_pendente = 0) as total_paid
         """
         return self.fetchone(query)
 
@@ -276,13 +276,14 @@ class AnalyticsRepository(BaseRepository):
             f.quantidade,
             f.valor_unitario,
             f.valor_total,
-            f.cliente,
+            c.nome as cliente,
             f.observacao,
-            f.pago,
+            CASE WHEN f.valor_pendente = 0 THEN 1 ELSE 0 END as pago,
             f.data_fiado,
-            f.data_pagamento
+            (SELECT MAX(fp.data_pagamento) FROM fiado_pagamentos fp WHERE fp.fiado_id = f.id) as data_pagamento
         FROM fiados f
         JOIN produtos p ON p.id = f.produto_id
+        JOIN clientes c ON c.id = f.cliente_id
         WHERE 1=1
         """
         params = []
@@ -291,9 +292,5 @@ class AnalyticsRepository(BaseRepository):
             params = [start_date, end_date]
 
         query += " ORDER BY f.data_fiado DESC"
-        return self.fetchall(query, tuple(params) if params else ())
-        
-        query += " ORDER BY pr.data_prejuizo DESC"
-        
         return self.fetchall(query, tuple(params) if params else ())
 

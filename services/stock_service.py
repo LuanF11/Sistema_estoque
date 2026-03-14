@@ -2,6 +2,8 @@ from repositories.product_repository import ProductRepository
 from repositories.stock_repository import StockRepository
 from repositories.fiado_repository import FiadoRepository
 from repositories.prejuizo_repository import PrejuizoRepository
+from repositories.caixa_repository import CaixaRepository
+from repositories.caixa_movimentacao_repository import CaixaMovimentacaoRepository
 
 
 class StockService:
@@ -14,6 +16,8 @@ class StockService:
         self.stock_repo = StockRepository()
         self.fiado_repo = FiadoRepository()
         self.prejuizo_repo = PrejuizoRepository()
+        self.caixa_repo = CaixaRepository()
+        self.caixa_mov_repo = CaixaMovimentacaoRepository()
 
     def entrada_produto(
         self,
@@ -182,28 +186,42 @@ class StockService:
         self.prejuizo_repo.delete(prejuizo_id)
 
     def pay_fiado(self, fiado_id: int):
-        """Marca fiado como pago: cria movimentação SAIDA (para contabilizar nas vendas) e atualiza registro de fiado."""
-        # Busca fiado
-        # (repository.list_open() returns rows mas precisamos dos dados para criar movimentacao)
-        open_fiados = self.fiado_repo.list_open()
-        target = None
-        for f in open_fiados:
-            if f[0] == fiado_id:
-                target = f
-                break
+        """
+        Marca fiado como pago: 
+        1. Registra movimentação de SAIDA (para contabilizar nas vendas)
+        2. Registra movimento de ENTRADA no caixa (recebimento do pagamento)
+        3. Atualiza registro de fiado
+        """
+        # Busca fiado por ID
+        fiado = self.fiado_repo.get_by_id(fiado_id)
+        if not fiado:
+            raise ValueError("Fiado não encontrado")
 
-        if not target:
-            raise ValueError("Fiado não encontrado ou já pago")
+        # Extrai dados do fiado
+        # get_by_id retorna dict com chaves: id, cliente_id, produto_id, quantidade, valor_unitario, 
+        # valor_total, valor_pendente, observacao, data_fiado, data_vencimento, cliente_nome, produto_nome
+        produto_id = fiado['produto_id']
+        quantidade = fiado['quantidade']
+        valor_total = fiado['valor_total']
+        cliente_nome = fiado.get('cliente_nome', 'Cliente')
+        observacao = f"Pagamento fiado: {cliente_nome}"
 
-        # target: (id, produto_id, quantidade, valor_unitario, valor_total, cliente, observacao, data_fiado)
-        produto_id = target[1]
-        quantidade = target[2]
-        observacao = f"Pagamento fiado: {target[5]}"
-
-        # Cria movimentação de SAIDA para contabilizar a venda
+        # Cria movimentação de SAIDA para contabilizar a venda no histórico de estoque
         movimentacao_id = self.stock_repo.register(produto_id, "SAIDA", quantidade, observacao)
 
-        # Marca fiado como pago e vincula a movimentação
+        # Registra ENTRADA no caixa (recebimento do pagamento do fiado)
+        caixa_hoje = self.caixa_repo.find_today_caixa()
+        caixa_id = caixa_hoje['id'] if caixa_hoje else None
+        
+        self.caixa_mov_repo.register(
+            caixa_id=caixa_id,
+            tipo="ENTRADA",
+            valor=valor_total,
+            descricao=observacao,
+            categoria="Pagamento de Fiado"
+        )
+
+        # Marca fiado como pago
         self.fiado_repo.mark_paid(fiado_id, movimentacao_id)
 
     def remove_fiado(self, fiado_id: int):
@@ -212,8 +230,8 @@ class StockService:
         if not fiado:
             raise ValueError("Fiado não encontrado.")
 
-        pago = fiado[8]  # coluna 'pago'
-        if pago == 1:
+        pago = fiado[6] == 0  # valor_pendente == 0 significa pago
+        if pago:
             raise ValueError("Não é possível excluir um fiado já pago.")
 
         produto_id = fiado[1]

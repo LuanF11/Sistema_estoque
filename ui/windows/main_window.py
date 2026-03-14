@@ -13,6 +13,7 @@ from ui.windows.alerts_window import AlertsWindow
 from ui.windows.caixa_window import CaixaWindow
 from ui.windows.caixa_dashboard_window import CaixaDashboardWindow
 from ui.windows.analytics_window import AnalyticsWindow
+from ui.windows.cliente_window import ClienteWindow
 from ui.dialogs.backup_dialog import BackupDialog
 
 
@@ -34,6 +35,7 @@ class MainWindow(QMainWindow):
         menu_caixa = QMenu("Caixa", self)
         menu_produtos = QMenu("Produtos", self)
         menu_estoque = QMenu("Estoque", self)
+        menu_clientes = QMenu("Clientes", self)
         menu_relatorios = QMenu("Relatórios", self)
         menu_analises = QMenu("Análises", self)
         menu_ferramentas = QMenu("Ferramentas", self)
@@ -42,6 +44,7 @@ class MainWindow(QMainWindow):
         menu_bar.addMenu(menu_caixa)
         menu_bar.addMenu(menu_produtos)
         menu_bar.addMenu(menu_estoque)
+        menu_bar.addMenu(menu_clientes)
         menu_bar.addMenu(menu_relatorios)
         menu_bar.addMenu(menu_analises)
         menu_bar.addMenu(menu_ferramentas)
@@ -52,6 +55,7 @@ class MainWindow(QMainWindow):
         self.menu_caixa = menu_caixa
         self.menu_produtos = menu_produtos
         self.menu_estoque = menu_estoque
+        self.menu_clientes = menu_clientes
         self.menu_relatorios = menu_relatorios
         self.menu_analises = menu_analises
         self.menu_ferramentas = menu_ferramentas
@@ -77,6 +81,10 @@ class MainWindow(QMainWindow):
         # Menu Estoque
         action_alerts = menu_estoque.addAction("Dashboard de Alertas")
         action_alerts.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.alerts_window))
+
+        # Menu Clientes
+        action_clientes = menu_clientes.addAction("Gerenciar Clientes e Fiados")
+        action_clientes.triggered.connect(lambda: self.stacked_widget.setCurrentWidget(self.cliente_window))
 
         # Menu Relatórios
         action_report = menu_relatorios.addAction("Vendas e Lucro")
@@ -118,6 +126,9 @@ class MainWindow(QMainWindow):
 
         self.alerts_window = AlertsWindow()
         self.stacked_widget.addWidget(self.alerts_window)
+
+        self.cliente_window = ClienteWindow()
+        self.stacked_widget.addWidget(self.cliente_window)
 
         self.report_window = ReportWindow()
         self.stacked_widget.addWidget(self.report_window)
